@@ -3,18 +3,22 @@ Here is how schedules are organized:
 0 refers to any possible single-digit number.
 
 Min schedule size:
-0 0 0 0 00 00   ~>  ( >= 100,000,000 )
+00000000 ( <2,400,000 )
 
 
 =======================================
 ------<//[  Evaluation Type  ]\\>------
 =======================================
 Determines the evaluation type.
---> 0 ( <2 - <10 )
+--> 0 ( <6 - <10 )
 Posibilities -> {
-    0 ->    equal              ~> proceed to connection A
-    1 ->    not equal          ~> proceed to connection B 
-}
+    0 ->    equal                       
+    1 ->    not equal                   
+    2 ->    less than                   
+    3 ->    greater than                
+    4 ->    less than or equal to       
+    5 ->    greater than or equal to    
+}                                       ~> Proceed to Connection A if true, otherwise proceed to Connection B
 
 ====================================
 ------<//[  Connection A  ]\\>------
@@ -37,53 +41,40 @@ Posibilities -> {
 ===================================
 ------<//[  Action Type  ]\\>------
 ===================================
-Determines the action take during current tick; always takes in two arguments (see Action Inputs)
---> 0 ( <10 )
-Posibilities -> {
-    X ->     Refers to any of the many actions found in the ./Actions folder
-}
-
-======================================
-------<//[  Action Input 1  ]\\>------
-======================================
-Can appear repeatedly; stops when a static value is passed. Always refers to a boolean using the eval type; 
-can be an input method (and daisy chained). Determines whether the evaluating action runs or not.
-
---> 0 ( <3 - <10 )
-Posibilities -> {
-    0 ->     Static True; action should run
-    1 ->     Static False; action should not run
-    2 ->     Call a specified input method with another value determined by the assisting bit (see below)
-}
-
-------<//[  Assisting Bit  ]\\>------
-Always appears right after the previous bit. Determines the input method being called for property Action Type
---> +0 ~> (concatinated is 00) ( <10 )
-Posibilities -> {
-    X ->     DISREGARDED IF THE Action Type IS A STATIC VALUE; 
-                otherwise, is used to locate one of many input methods found int ./Input
-                This input will determine whether the method will run or not.
-                If it is not a boolean, it will try to use the :ConvertToBoolean() method;
-}
-
-======================================
-------<//[  Action Input 2  ]\\>------
-======================================
-Can appear repeatedly; stops when a static value is passed. Can refer to any value; 
-can be an input method (and daisy chained). Determines the second argument passed into the current action.
-
+Determines what type of item is being called and passed into the next connection
 --> 0 ( <2 - <10 )
 Posibilities -> {
-    0 ->    Calls a specific method determined by the assisting bit (see below)
-    1 ->    Passes in a specific string determined by the assisting bit (see below)
+    0 ->     This means the current connection is an action found in ./Action (see below)
+    1 ->     This means the current connection is not a function, it is a static variable (see below)
 }
 
-------<//[  Assisting Bit  ]\\>------
-Always appears right after the previous bit. Determines the input method being called for property Action Type
+------<//[  Assisting Bit 1  ]\\>------
+Always appears right after the previous bit. Determines the file being called. In the case of it being 
+a static variable, it refers to a number being passed into the next method
 --> +0 ~> (concatinated is 00) ( <10 )
 Posibilities -> {
-    X ->    Can refer to a method found in the ./Input folder or refer to one of the 62 characters
+    X ->     Refers to either a file number found in ./Action or a static number
 }
 
-*** BOTH ACTION INPUTS CAN APPEAR MULTIPLE TIMES (TECHNICALLY INFINITELY) ***
-*** ONLY STOPS APPEARING ONCE A STATIC VALUE IS PASSED INTO ONE OF THE ARGUMENTS ***
+------<//[  Assisting Bit 2  ]\\>------
+Always appears right after the previous bit. 
+Determines whether the action being called gets the arguemnts from pervious method or not.
+--> +0 ~> (concatinated is 000) ( <2 - <10 )
+Posibilities -> {
+    0 ->     Passes the arguments called from the previous method. Nil if there is none
+    1 ->     Passes a static number determined by the next assisting bit.
+}
+
+------<//[  Assisting Bit 3  ]\\>------
+Always appears right after the previous bit. Someimes ignored.
+--> +0 ~> (concatinated is 0000) ( <10 )
+Posibilities -> {
+    X ->     A number that gets passed into the next connection instead of the returns depending on the previous bit
+}
+
+------<//[  Eval Bit  ]\\>------
+Always appears right after the previous bit.
+--> +0 ~> (concatinated is 00000) ( <10 )
+Posibilities -> {
+    X ->     This is the bit that is evaled with the return of the action
+}

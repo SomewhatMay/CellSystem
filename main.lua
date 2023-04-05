@@ -23,9 +23,12 @@ love.Import = import
 local Config = import("Config")
 local BiArray = import("Modules.BiArray")
 local CellClass = import("Modules.Cell")
+local FoodClass = import("Modules.Food")
 local UUID = import("Modules.UUID")
 local UUID = import("Modules.ScheduleService")
 local ActionClass = import("Modules.ActionClass")
+local Evals = import("Modules.Evals")
+local TableToString = import("Modules.TableToString")
 
 -- Initiating all modules
 for _, module in pairs(Modules) do
@@ -39,15 +42,24 @@ local lastUpdate = 0
 
 function love.load()
 	cellGrid = BiArray.new(Config.World.Rows, Config.World.Columns, function(column, row)
-		if love.math.random(1, 10) ~= 1 then return end
+		local chance = love.math.random(1, 100)
 		
-		local cell = CellClass.new({
-			X = column;
-			Y = row
-		})
-		
+		if chance == 1 then
+			local cell = CellClass.new({
+				X = column;
+				Y = row
+			})
+			
 
-		return cell
+			return cell
+		elseif chance == 2 then
+			local food = FoodClass.new({
+				X = column;
+				Y = row;
+			})
+
+			return food
+		end
 	end)
 
 	love.window.setMode(Config.WindowSize.X, Config.WindowSize.Y)
@@ -58,7 +70,7 @@ function love.update(dt)
 		lastUpdate = lastUpdate - Config.UpdateRate
 
 		cellGrid:Iterate(function(column, row, value)
-			if value then
+			if value and value.type == "cell" then
 				value:Next()
 			end
 		end)

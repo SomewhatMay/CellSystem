@@ -1,14 +1,8 @@
 local Action = {}
 Action.__index = Action
 
-function Action:__call(cell, canRun, argument, connectionA, connectionB)
-    if canRun then
-        self.callback(cell, argument)
-
-        return connectionA
-    else
-        return connectionB
-    end
+function Action:__call(cell, ...)
+    self.callback(cell)
 end
 
 function Action.new(callback)
