@@ -1,6 +1,6 @@
 local settings = {
     UpdateRate = .1; -- tickrate; in seconds
-    TotalScheduleSize = 8; -- the number of schedules each cell should have 
+    TotalScheduleSize = 8; -- the number of schedules each cell should have
 
     World = {
         Columns = 50;
@@ -10,6 +10,11 @@ local settings = {
     WindowSize = {
         X = 300;
         Y = 300;
+    };
+
+    Points = {
+        Food = 10;
+        Death = -50;
     };
 
     ScheduleCoordinates = {

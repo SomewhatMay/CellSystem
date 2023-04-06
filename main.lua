@@ -103,7 +103,6 @@ function love.load()
 	end)
 
 	love.GarrisonedCells = {}
-	love._Config = Config
 	love.window.setMode(Config.WindowSize.X, Config.WindowSize.Y)
 	lastUpdate = love.timer.getTime()
 
@@ -142,8 +141,15 @@ function love.update(dt)
 							garrisonedCell = residingCell
 						end
 
+						garrisonedCell.Points = garrisonedCell.Points + Config.Points.Death
 						garrisonedCell.Alive = false
 						table.insert(love.GarrisonedCells, garrisonedCell)
+					elseif residingCell and residingCell.type == "food" then
+						love.CellGrid:Set(value.Position.X, value.Position.Y, nil)
+						love.NextCellGrid:Set(value.Position.X, value.Position.Y, nil)
+						
+						residingCell:Destroy()
+						value.Points = value.Points + Config.Points.Food
 			    	end
 				elseif value.type == "food" then
 					repaste = true
