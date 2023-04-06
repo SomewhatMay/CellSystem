@@ -18,12 +18,6 @@ function cell:Draw()
 end
 
 function cell:Next()
-	local start = love.timer.getTime()
-	if self.LastNext and (start - self.LastNext < Config.UpdateRate) then
-		love.Log(("Called schedule on %s too early. (%s)"):format(self.Ancestry, start - self.LastNext))
-	end
-	self.LastNext = start
-
 	local currentSchedule = self.Schedule[self.Pointer]
 	local newPointer, newResult = ScheduleService.readSchedule(self, currentSchedule, self.LatestResult)
 
@@ -41,7 +35,7 @@ function cell:Destroy()
 	setmetatable(self, nil)
 
 	if #self > 0 then
-		print("Incomplete :Destroy()")
+		Log("Incomplete :Destroy()")
 	end
 end
 

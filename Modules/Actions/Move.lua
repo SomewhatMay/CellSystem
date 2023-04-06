@@ -19,12 +19,5 @@ return function(cell, direction)
     cell.Position.X = cell.Position.X + XOffset
     cell.Position.Y = cell.Position.Y + YOffset
 
-    local residingCell = love.NextCellGrid:Get(cell.Position.X, cell.Position.Y)
-    if residingCell and residingCell.type == "cell" then
-        print(cell.Ancestry, "- Cell found -", residingCell.Ancestry)
-        residingCell:Destroy()
-    end
-    love.NextCellGrid:Set(cell.Position.X, cell.Position.Y, cell)
-
     return math.abs(XOffset + YOffset)
 end

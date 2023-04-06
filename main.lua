@@ -71,21 +71,6 @@ function Log(noTime, ...)
     return prefixTime
 end
 
-local function asihdas(k)
-	local s = "{"
-
-	for i, v in pairs(k.Array) do
-		if type(v) == "table" and v.type == "cell" then
-			v = "cell-" .. v.Ancestry
-			s = s .. ("\n[%s] = %s"):format(i, v)
-		end
-	end
-
-	s = s .. "\n}"
-
-	return s
-end
-
 function love.load()
 	logFile = love.filesystem.newFile("/Log.txt")
     logFile:open("w")
@@ -107,7 +92,7 @@ function love.load()
 			
 
 			return cell
-		elseif chance == 0 then
+		elseif chance == 2 then
 			local food = FoodClass.new({
 				X = column;
 				Y = row;
@@ -127,17 +112,10 @@ local isUpdating = false
 function love.update(dt)
 	if (not isUpdating) and (love.timer.getTime() - lastUpdate) > Config.UpdateRate then
 		isUpdating = true
-		Log("Cell Grid:")
-		Log(asihdas(love.CellGrid))
-		Log("---------------")
-		Log("Next Cell Grid:")
-		Log(asihdas(love.NextCellGrid))
 
 		love.CellGrid:Iterate(function(column, row, value)
 			if value and value.type == "cell" then
-				--Log("--calling next", love.timer.getTime() - lastUpdate)
 				value:Next()
-				--Log("called next", love.timer.getTime() - lastUpdate)
 			end
 		end)
 
@@ -145,15 +123,8 @@ function love.update(dt)
 		love.CellGrid = love.NextCellGrid
 		love.NextCellGrid = BiArray.new(Config.World.Columns, Config.World.Rows)
 
-		Log("---------------")
-		Log("Next Cell Grid:")
-		Log(asihdas(love.CellGrid))
-
 		lastUpdate = love.timer.getTime()
 		isUpdating = false
-		
-		--Log(TableToString(cellGrid))
-		--Log("-----------------------------------------------------")
 	end
 end
 
@@ -179,5 +150,5 @@ function love.draw()
 end
 
 function love.quit()
-
+	Log("Quitting successfully.")
 end

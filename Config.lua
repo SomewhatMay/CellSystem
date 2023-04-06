@@ -1,5 +1,5 @@
 local settings = {
-    UpdateRate = 1; -- tickrate; in seconds
+    UpdateRate = .1; -- tickrate; in seconds
     TotalScheduleSize = 8; -- the number of schedules each cell should have 
 
     World = {

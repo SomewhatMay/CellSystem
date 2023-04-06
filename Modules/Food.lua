@@ -22,7 +22,7 @@ function food:Destroy()
 	setmetatable(self, nil)
 
 	if #self > 0 then
-		print("Incomplete :Destroy()")
+		Log("Incomplete :Destroy()")
 	end
 end
 
