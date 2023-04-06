@@ -1,3 +1,5 @@
+-- The local config
+
 local settings = {
     UpdateRate = .01; -- tickrate; in seconds
     TotalScheduleSize = 8; -- the number of schedules each cell should have

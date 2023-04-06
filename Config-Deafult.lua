@@ -1,3 +1,7 @@
+-- This will be used if there is no local Config.lua
+-- The Config.lua always overwrites this config
+-- It is highly recommended to use a local Config.lua to change new variables
+
 local settings = {
     UpdateRate = .01; -- tickrate; in seconds
     TotalScheduleSize = 8; -- the number of schedules each cell should have
