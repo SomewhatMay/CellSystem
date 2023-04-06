@@ -11,7 +11,7 @@ local function random(a, b)
 end
 
 local function wrap(a, max)
-    return (a % max) + 1
+    return (a % max)
 end
 
 function ScheduleService.newSchedule(volume)
@@ -27,8 +27,8 @@ function ScheduleService.newSchedule(volume)
         str = str .. tostring(random(1, Config.TotalScheduleSize)) -- ConnectionB
         str = str .. tostring(random(1, 2)) -- Action Type
         str = str .. tostring(random()) -- Assisting Bit 1
-        str = str .. tostring(random(1, 2)) -- Assisting Bit 1
-        str = str .. tostring(random()) -- Assisting Bit 1
+        str = str .. tostring(random(1, 2)) -- Assisting Bit 2
+        str = str .. tostring(random()) -- Assisting Bit 3
         str = str .. tostring(random()) -- Eval Bit
 
         table.insert(self, str)
@@ -93,12 +93,12 @@ function ScheduleService.readSchedule(cell, schedule, peviousArgument)
             peviousArgument = assistingBit3
         end
 
-        actionReturn = Actions[wrap(assistingBit1, #Actions)](cell, peviousArgument)
+        actionReturn = Actions[wrap(assistingBit1, #Actions) + 1](cell, peviousArgument)
     else
         actionReturn = assistingBit1
     end
 
-    if Evals[wrap(evalType, #Evals)](actionReturn, evalBit) == true then
+    if Evals[wrap(evalType, #Evals) + 1](actionReturn, evalBit) == true then
         return connectionA, actionReturn
     else
         return connectionB, actionReturn

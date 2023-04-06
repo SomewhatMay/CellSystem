@@ -3,16 +3,16 @@
 --wraps if it doesnt fit in the values
 --@param {number} direction - Can be `0` (up) `1` (right) `2` (down) `3` (left)
 return function(cell, direction)
-    direction = direction or 1
+    direction = (direction or 0) % 5
     local XOffset, YOffset = 0, 0
 
-    if direction == 1 then
+    if direction == 0 then
         YOffset = 1
-    elseif direction == 2 then
+    elseif direction == 1 then
         XOffset = 1
-    elseif direction == 3 then
+    elseif direction == 2 then
         YOffset = -1
-    elseif direction == 4 then
+    elseif direction == 3 then
         XOffset = -1
     end
 
@@ -27,5 +27,5 @@ return function(cell, direction)
         cell.Position.Y = 1
     end
 
-    return math.abs(XOffset + YOffset)
+    return direction
 end
