@@ -81,7 +81,7 @@ function love.load()
 	--local chance = 10
 	love.NextCellGrid = BiArray.new(Config.World.Columns, Config.World.Rows)
 	love.CellGrid = BiArray.new(Config.World.Columns, Config.World.Rows, function(column, row)
-		local chance = love.math.random(1, 50)
+		local chance = love.math.random(1, 150)
 		--chance = chance - 1
 		
 		if chance == 1 then
@@ -92,7 +92,7 @@ function love.load()
 			
 
 			return cell
-		elseif chance == 2 then
+		elseif chance == 2 or chance == 4 then
 			local food = FoodClass.new({
 				X = column;
 				Y = row;
@@ -147,7 +147,7 @@ function love.update(dt)
 					elseif residingCell and residingCell.type == "food" then
 						love.CellGrid:Set(value.Position.X, value.Position.Y, nil)
 						love.NextCellGrid:Set(value.Position.X, value.Position.Y, nil)
-						
+
 						residingCell:Destroy()
 						value.Points = value.Points + Config.Points.Food
 			    	end

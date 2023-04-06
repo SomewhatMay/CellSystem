@@ -44,6 +44,10 @@ function biArray:Empty()
 	self.Array = {}
 end
 
+function biArray:OutOfBounds(x, y)
+	return (x > self.Columns) or (y > self.Rows) or (x < 1) or (y < 1)
+end
+
 function biArray:Destroy()
 	self.Array = nil
 	self.Columns = nil

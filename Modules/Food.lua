@@ -6,7 +6,7 @@ local food = {}
 food.__index = food
 
 function food:Draw()
-    love.graphics.setColor(255, 255, 0)
+    love.graphics.setColor(1, 1, 0)
 	love.graphics.rectangle(
 		"fill", 
 		(self.Position.X - 1) * Config.CellSize.X,

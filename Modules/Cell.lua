@@ -7,7 +7,7 @@ local cell = {}
 cell.__index = cell
 
 function cell:Draw()
-	love.graphics.setColor(255, 255, 255)
+	love.graphics.setColor(math.max(255 - self.Points, 0) / 255, 1, math.max(255 - self.Points, 0) / 255)
 	love.graphics.rectangle(
 		"fill", 
 		(self.Position.X - 1) * Config.CellSize.X,
