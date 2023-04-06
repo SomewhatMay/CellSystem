@@ -98,16 +98,6 @@ function ScheduleService.readSchedule(cell, schedule, peviousArgument)
         actionReturn = assistingBit1
     end
 
-    -- Let's push the player into the new biArray
-    local residingCell = love.NextCellGrid:Get(cell.Position.X, cell.Position.Y)
-    if residingCell and residingCell.type == "cell" then
-        print(cell.Ancestry, "- Cell found -", residingCell.Ancestry)
-        residingCell:Destroy()
-    end
-    love.NextCellGrid:Set(cell.Position.X, cell.Position.Y, cell)
-
-    --love.Log("Done schedule on -", cell.Ancestry)
-
     if Evals[wrap(evalType, #Evals)](actionReturn, evalBit) == true then
         return connectionA, actionReturn
     else
