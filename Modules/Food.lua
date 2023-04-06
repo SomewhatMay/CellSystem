@@ -9,8 +9,8 @@ function food:Draw()
     love.graphics.setColor(255, 255, 0)
 	love.graphics.rectangle(
 		"fill", 
-		(self.Position.X - 1) * Config.CellSize.X, 
-		(self.Position.Y - 1) * Config.CellSize.Y, 
+		(self.Position.X - 1) * Config.CellSize.X,
+		(self.Position.Y - 1) * Config.CellSize.Y,
 		Config.CellSize.X,
 		Config.CellSize.Y
 	)

@@ -1,35 +1,35 @@
 function Equal(arguemntA, argumentB)
-    assert(type(arguemntA) == type(argumentB) == "number", "Arguemnts are not both numbers!")
+    assert(type(arguemntA) == "number" and type(argumentB) == "number", "Arguemnts are not both numbers!")
 
     return arguemntA == argumentB
 end
 
 function NotEqual(arguemntA, argumentB)
-    assert(type(arguemntA) == type(argumentB) == "number", "Arguemnts are not both numbers!")
+    assert(type(arguemntA) == "number" and type(argumentB) == "number", "Arguemnts are not both numbers!")
 
     return arguemntA ~= argumentB
 end
 
 function GreaterThan(arguemntA, argumentB)
-    assert(type(arguemntA) == type(argumentB) == "number", "Arguemnts are not both numbers!")
+    assert(type(arguemntA) == "number" and type(argumentB) == "number", "Arguemnts are not both numbers!")
 
     return arguemntA > argumentB
 end
 
 function LessThan(arguemntA, argumentB)
-    assert(type(arguemntA) == type(argumentB) == "number", "Arguemnts are not both numbers!")
+    assert(type(arguemntA) == "number" and type(argumentB) == "number", "Arguemnts are not both numbers!")
 
     return arguemntA < argumentB
 end
 
 function GreaterThanOrEqualledTo(arguemntA, argumentB)
-    assert(type(arguemntA) == type(argumentB) == "number", "Arguemnts are not both numbers!")
+    assert(type(arguemntA) == "number" and type(argumentB) == "number", "Arguemnts are not both numbers!")
 
     return arguemntA >= argumentB
 end
 
 function LessThanOrEqualledTo(arguemntA, argumentB)
-    assert(type(arguemntA) == type(argumentB) == "number", "Arguemnts are not both numbers!")
+    assert(type(arguemntA) == "number" and type(argumentB) == "number", "Arguemnts are not both numbers!")
 
     return arguemntA <= argumentB
 end

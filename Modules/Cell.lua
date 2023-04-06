@@ -10,15 +10,25 @@ function cell:Draw()
 	love.graphics.setColor(255, 255, 255)
 	love.graphics.rectangle(
 		"fill", 
-		(self.Position.X - 1) * Config.CellSize.X, 
-		(self.Position.Y - 1) * Config.CellSize.Y, 
+		(self.Position.X - 1) * Config.CellSize.X,
+		(self.Position.Y - 1) * Config.CellSize.Y,
 		Config.CellSize.X,
 		Config.CellSize.Y
 	)
 end
 
 function cell:Next()
-	
+	local start = love.timer.getTime()
+	if self.LastNext and (start - self.LastNext < Config.UpdateRate) then
+		love.Log(("Called schedule on %s too early. (%s)"):format(self.Ancestry, start - self.LastNext))
+	end
+	self.LastNext = start
+
+	local currentSchedule = self.Schedule[self.Pointer]
+	local newPointer, newResult = ScheduleService.readSchedule(self, currentSchedule, self.LatestResult)
+
+	self.Pointer = newPointer
+	self.LatestResult = newResult
 end
 
 function cell:Destroy()
@@ -46,12 +56,11 @@ function cellClass.new(position, ancestry)
 		Ancestry = ancestry;
 		Position = position;
 		Pointer = 1;
+		LatestResult = nil;
 	}
 
 	setmetatable(self, cell)
 	self.Schedule = ScheduleService.newSchedule()
-
-	print(TableToString(self))
 
 	return self
 end

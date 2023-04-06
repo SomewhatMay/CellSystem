@@ -37,12 +37,67 @@ for _, module in pairs(Modules) do
 	end
 end
 
-local cellGrid
-local lastUpdate = 0
+local lastUpdate
+
+-- Log stuff
+local logFile
+function string.lpad(str, len, char)
+    if char == nil then char = ' ' end
+    local distance = len - #str
+    return str .. ((distance > 0 and string.rep(char, distance)) or "")
+end
+
+function Log(noTime, ...)
+    local strings = {...}
+    local prefixTime
+    local prefix = ""
+
+    if not (type(noTime) == "boolean" and noTime == true) then
+        prefixTime = love.timer.getTime()
+        prefix = prefixTime .. " : "
+        prefix = string.lpad(prefix, 15)
+        table.insert(strings, 1, noTime)
+    end
+
+	local pString = ""
+    logFile:write("\n" .. prefix)
+    for _, str in pairs(strings) do
+        logFile:write(str)
+		pString = pString .. str
+    end
+
+	print(pString)
+
+    return prefixTime
+end
+
+local function asihdas(k)
+	local s = "{"
+
+	for i, v in pairs(k.Array) do
+		if type(v) == "table" and v.type == "cell" then
+			v = "cell-" .. v.Ancestry
+			s = s .. ("\n[%s] = %s"):format(i, v)
+		end
+	end
+
+	s = s .. "\n}"
+
+	return s
+end
 
 function love.load()
-	cellGrid = BiArray.new(Config.World.Rows, Config.World.Columns, function(column, row)
+	logFile = love.filesystem.newFile("/Log.txt")
+    logFile:open("w")
+	love.Log = Log
+
+	Log("Initiating all cells...")
+
+	--local chance = 10
+	love.NextCellGrid = BiArray.new(Config.World.Columns, Config.World.Rows)
+	love.CellGrid = BiArray.new(Config.World.Columns, Config.World.Rows, function(column, row)
 		local chance = love.math.random(1, 100)
+		--chance = chance - 1
 		
 		if chance == 1 then
 			local cell = CellClass.new({
@@ -52,7 +107,7 @@ function love.load()
 			
 
 			return cell
-		elseif chance == 2 then
+		elseif chance == 0 then
 			local food = FoodClass.new({
 				X = column;
 				Y = row;
@@ -63,27 +118,49 @@ function love.load()
 	end)
 
 	love.window.setMode(Config.WindowSize.X, Config.WindowSize.Y)
+	lastUpdate = love.timer.getTime()
+
+	Log("love.load() completed!")
 end
 
+local isUpdating = false
 function love.update(dt)
-	if lastUpdate >= Config.UpdateRate then
-		lastUpdate = lastUpdate - Config.UpdateRate
+	if (not isUpdating) and (love.timer.getTime() - lastUpdate) > Config.UpdateRate then
+		isUpdating = true
+		Log("Cell Grid:")
+		Log(asihdas(love.CellGrid))
+		Log("---------------")
+		Log("Next Cell Grid:")
+		Log(asihdas(love.NextCellGrid))
 
-		cellGrid:Iterate(function(column, row, value)
+		love.CellGrid:Iterate(function(column, row, value)
 			if value and value.type == "cell" then
+				--Log("--calling next", love.timer.getTime() - lastUpdate)
 				value:Next()
+				--Log("called next", love.timer.getTime() - lastUpdate)
 			end
 		end)
-	else
-		lastUpdate = lastUpdate + dt
+
+		love.CellGrid:Destroy()
+		love.CellGrid = love.NextCellGrid
+		love.NextCellGrid = BiArray.new(Config.World.Columns, Config.World.Rows)
+
+		Log("---------------")
+		Log("Next Cell Grid:")
+		Log(asihdas(love.CellGrid))
+
+		lastUpdate = love.timer.getTime()
+		isUpdating = false
+		
+		--Log(TableToString(cellGrid))
+		--Log("-----------------------------------------------------")
 	end
 end
 
-local index = 1
 function love.draw()
 	love.graphics.setBackgroundColor(0, 0, 0)
 
-    cellGrid:Iterate(function(column, row, value)
+    love.CellGrid:Iterate(function(column, row, value)
 		-- Outlines
 		love.graphics.setLineWidth(2)
 		love.graphics.setColor(0, 0, 0)
@@ -99,8 +176,6 @@ function love.draw()
 			value:Draw()
 		end
 	end)
-
-	index = index + 10
 end
 
 function love.quit()

@@ -81,6 +81,8 @@ function ScheduleService.readSchedule(cell, schedule, peviousArgument)
 
     
     local actionReturn
+    connectionA = tonumber(connectionA) + 1
+    connectionB = tonumber(connectionB) + 1
     evalType = tonumber(evalType)
     assistingBit1 = tonumber(assistingBit1)
     assistingBit3 = tonumber(assistingBit3)
@@ -91,10 +93,12 @@ function ScheduleService.readSchedule(cell, schedule, peviousArgument)
             peviousArgument = assistingBit3
         end
 
-        actionReturn = Actions[wrap(assistingBit1, #Actions)](peviousArgument)
+        actionReturn = Actions[wrap(assistingBit1, #Actions)](cell, peviousArgument)
     else
         actionReturn = assistingBit1
     end
+
+    --love.Log("Done schedule on -", cell.Ancestry)
 
     if Evals[wrap(evalType, #Evals)](actionReturn, evalBit) == true then
         return connectionA, actionReturn
