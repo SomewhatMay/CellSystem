@@ -3,13 +3,13 @@ local settings = {
     TotalScheduleSize = 8; -- the number of schedules each cell should have 
 
     World = {
-        Columns = 100;
-        Rows = 100;
+        Columns = 50;
+        Rows = 50;
     };
 
     WindowSize = {
-        X = 800;
-        Y = 800;
+        X = 300;
+        Y = 300;
     };
 
     ScheduleCoordinates = {

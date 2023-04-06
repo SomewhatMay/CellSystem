@@ -40,6 +40,10 @@ function biArray:Fill(value)
 	end
 end
 
+function biArray:Empty()
+	self.Array = {}
+end
+
 function biArray:Destroy()
 	self.Array = nil
 	self.Columns = nil

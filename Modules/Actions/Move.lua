@@ -19,11 +19,11 @@ return function(cell, direction)
     cell.Position.X = cell.Position.X + XOffset
     cell.Position.Y = cell.Position.Y + YOffset
 
-    if cell.Position.X > Config.World.Columns then
+    if cell.Position.X > love._Config.World.Columns then
         cell.Position.X = 1
     end
 
-    if cell.Position.Y > Config.World.Rows then
+    if cell.Position.Y > love._Config.World.Rows then
         cell.Position.Y = 1
     end
 
