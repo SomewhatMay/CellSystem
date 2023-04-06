@@ -30,7 +30,7 @@ function cell:Destroy()
 	self.Ancestry = nil
 	self.Position = nil
 	self.Schedule = nil
-	self.Pointer = nil;
+	self.Pointer = nil
 
 	setmetatable(self, nil)
 
@@ -51,6 +51,7 @@ function cellClass.new(position, ancestry)
 		Position = position;
 		Pointer = 1;
 		LatestResult = nil;
+		Alive = true;
 	}
 
 	setmetatable(self, cell)

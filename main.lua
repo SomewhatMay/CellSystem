@@ -81,7 +81,7 @@ function love.load()
 	--local chance = 10
 	love.NextCellGrid = BiArray.new(Config.World.Columns, Config.World.Rows)
 	love.CellGrid = BiArray.new(Config.World.Columns, Config.World.Rows, function(column, row)
-		local chance = love.math.random(1, 100)
+		local chance = love.math.random(1, 50)
 		--chance = chance - 1
 		
 		if chance == 1 then
@@ -102,6 +102,8 @@ function love.load()
 		end
 	end)
 
+	love.GarrisonedCells = {}
+	love._Config = Config
 	love.window.setMode(Config.WindowSize.X, Config.WindowSize.Y)
 	lastUpdate = love.timer.getTime()
 
@@ -114,28 +116,43 @@ function love.update(dt)
 		isUpdating = true
 
 		love.CellGrid:Iterate(function(column, row, value)
-	local repaste = false
-
+			local repaste = false
+			
 			if value then 
-if value.type == "cell" then
-				value:Next()
--- Lets check if the cell is overlapping or eating 
--- We're gonna check in the current CellGrid instead of the NextCellGrid
-    local residingCell = love.CellGrid:Get(value.Position.X, value.Position.Y)
-    if residingCell and residingCell.type == "cell" then
-        print(cell.Ancestry, "- Cell found -", residingCell.Ancestry)
-        
--- Lets check which cell has a higher points value
-    end
-		repaste = true
-elseif value.type == "food" then
-		repaste = true
-			end
-end
+				if value.type == "cell" then
+					if value.Alive ~= true then return end
+					
+					repaste = true
+					
+					value:Next()
+					-- Lets check if the cell is overlapping or eating 
+					-- We're gonna check in the current CellGrid instead of the NextCellGrid
+			    	local residingCell = love.CellGrid:Get(value.Position.X, value.Position.Y)
+			    	if residingCell and residingCell.type == "cell" and (residingCell ~= value) then
+			       		--print(value.Ancestry, "- Cell found -", residingCell.Ancestry)
+			        
+						-- Lets check which cell has a higher points value
 
-	if repaste then
-    love.NextCellGrid:Set(value.Position.X, value.Position.Y, value)
-end
+						local garrisonedCell
+
+						if residingCell.Points > value.Points then
+							garrisonedCell = value
+							repaste = false
+						else
+							garrisonedCell = residingCell
+						end
+
+						garrisonedCell.Alive = false
+						table.insert(love.GarrisonedCells, garrisonedCell)
+			    	end
+				elseif value.type == "food" then
+					repaste = true
+				end
+			end
+
+			if repaste then
+    			love.NextCellGrid:Set(value.Position.X, value.Position.Y, value)
+			end
 		end)
 
 		love.CellGrid:Destroy()
