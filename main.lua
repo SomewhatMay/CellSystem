@@ -114,9 +114,28 @@ function love.update(dt)
 		isUpdating = true
 
 		love.CellGrid:Iterate(function(column, row, value)
-			if value and value.type == "cell" then
+	local repaste = false
+
+			if value then 
+if value.type == "cell" then
 				value:Next()
+-- Lets check if the cell is overlapping or eating 
+-- We're gonna check in the current CellGrid instead of the NextCellGrid
+    local residingCell = love.CellGrid:Get(value.Position.X, value.Position.Y)
+    if residingCell and residingCell.type == "cell" then
+        print(cell.Ancestry, "- Cell found -", residingCell.Ancestry)
+        
+-- Lets check which cell has a higher points value
+    end
+		repaste = true
+elseif value.type == "food" then
+		repaste = true
 			end
+end
+
+	if repaste then
+    love.NextCellGrid:Set(value.Position.X, value.Position.Y, value)
+end
 		end)
 
 		love.CellGrid:Destroy()
