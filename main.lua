@@ -19,8 +19,19 @@ end
 love.Modules = Modules
 love.Import = import
 
--- Importing required modules 
-local Config = import("Config")
+-- Importing required modules
+local Config
+do
+	local success = pcall(function()
+		Config = import("Config")
+	end)
+	
+	if not success then
+		Log("No local config - using deafult config.")
+		Config = import("Config-Deafult")
+	end
+end
+
 local BiArray = import("Modules.BiArray")
 local CellClass = import("Modules.Cell")
 local FoodClass = import("Modules.Food")
