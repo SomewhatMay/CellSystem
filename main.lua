@@ -1,57 +1,21 @@
 
--- Import new modules and add them to a directory
-local Modules = {}
-local function import(path)
-	local lastPeriod = string.find(path, "%.")
-	local moduleName = string.sub(path, (lastPeriod or 0) + 1, #path)
-	local loadedModule = Modules[moduleName]
-
-	if loadedModule then
-		return loadedModule
-	end
-
-	loadedModule = require(path)
-	
-	Modules[moduleName] = loadedModule
-
-	return loadedModule
-end
-love.Modules = Modules
-love.Import = import
-
--- Importing required modules
-local Config
-do
-	local success = pcall(function()
-		Config = import("Config")
-	end)
-	
-	if not success then
-		Log("No local config - using deafult config.")
-		Config = import("Config-Deafult")
-	end
-end
-
-local BiArray = import("Modules.BiArray")
-local CellClass = import("Modules.Cell")
-local FoodClass = import("Modules.Food")
-local UUID = import("Modules.UUID")
-local UUID = import("Modules.ScheduleService")
-local ActionClass = import("Modules.ActionClass")
-local Evals = import("Modules.Evals")
-local TableToString = import("Modules.TableToString")
-
--- Initiating all modules
-for _, module in pairs(Modules) do
-	if type(module) == "table" and module.Init then
-		module.Init()
-	end
-end
-
-local lastUpdate
-
 -- Log stuff
-local logFile
+local logFile = io.open("Log.txt", "w+")
+_Global_log_file = false
+
+if logFile then
+	logFile:close()
+	logFile = io.open("Log.txt", "a")
+end
+
+if not logFile then
+	---@diagnostic disable-next-line: cast-local-type
+	logFile = love.filesystem.newFile("Log.txt")
+	logFile:open("w")
+	love.Log = Log
+	_Global_log_file = true
+end
+
 function string.lpad(str, len, char)
     if char == nil then char = ' ' end
     local distance = len - #str
@@ -82,12 +46,117 @@ function Log(noTime, ...)
     return prefixTime
 end
 
-function love.load()
-	logFile = love.filesystem.newFile("/Log.txt")
-    logFile:open("w")
-	love.Log = Log
+if _Global_log_file then
+	Log("Cannot create local log file. Using global..")
+end
 
-	Log("Initiating all cells...")
+Log("main.lua starting...")
+
+-- Difftime
+local DiffTime = {Scheduled = {}}
+
+function DiffTime.start(code)
+	DiffTime.Scheduled[code] = love.timer.getTime()
+end
+
+function DiffTime.calculate(code, inSeconds, dontEmpty)
+	-- in seconds
+	local diff = love.timer.getTime() - DiffTime.Scheduled[code]
+
+	-- if inSeconds == false, then convert it to miliseconds
+	if inSeconds ~= true then
+		diff = diff * 1000
+	end
+
+	-- let's round it to the nearest hundredth
+	diff = math.floor(diff * 100) / 100
+
+	if dontEmpty ~= true then
+		DiffTime.Scheduled[code] = nil
+	end
+
+	return diff
+end
+
+-- Import new modules and add them to a directory
+
+Log("Attempting to import modules...")
+
+local Modules = {}
+local function import(path)
+	local lastPeriod = string.find(path, "%.[^%.]*$")
+	local moduleName = string.sub(path, (lastPeriod or 0) + 1, #path)
+	local loadedModule = Modules[moduleName]
+
+	if loadedModule then
+		return loadedModule
+	end
+
+	loadedModule = require(path)
+	
+	Modules[moduleName] = loadedModule
+
+	return loadedModule
+end
+love.Modules = Modules
+love.Import = import
+
+-- Lets import the config module and add a metatable to the deafult one.
+local Config
+local Config_Deafult
+do
+	local success1 = pcall(function()
+		Config_Deafult = import("Config-Deafult")
+	end)
+
+	local success2 = pcall(function()
+		Config = import("Config")
+	end)
+
+	if not success1 then
+		Log("No Config-deafult.lua! This is a required file to continue. Please refresh origin!")
+		love.quit()
+	end
+	
+	if success2 then
+		Log("Local config available. Setting metatable to deafult config...")
+		Config.__index = function(_, key)
+			Log("No available key \"", tostring(key), "\" in local config; returning from Config-Deafult...")
+			
+			return Config_Deafult[key]
+		end
+	else
+		Log("No local config - using deafult config.")
+		Config = Config_Deafult
+	end
+end
+
+-- Importing required modules
+local BiArray = import("Modules.Packages.BiArray")
+local CellClass = import("Modules.Packages.Cell")
+local FoodClass = import("Modules.Packages.Food")
+local UUID = import("Modules.Packages.UUID")
+local UUID = import("Modules.ScheduleService")
+local ActionClass = import("Modules.Packages.ActionClass")
+local Evals = import("Modules.Packages.Evals")
+local TableToString = import("Modules.Packages.TableToString")
+
+Log("All modules imported. Initating all modules...")
+
+DiffTime.start("Module init startup")
+-- Initiating all modules
+for _, module in pairs(Modules) do
+	if type(module) == "table" and module.Init then
+		module.Init()
+	end
+end
+
+Log("All modules loaded in " .. DiffTime.calculate("Module init startup") .. "ms")
+
+local last_mem_update
+
+function love.load()
+	Log("love.load() started - Initiating all cells...")
 
 	--local chance = 10
 	love.NextCellGrid = BiArray.new(Config.World.Columns, Config.World.Rows)
@@ -115,15 +184,40 @@ function love.load()
 
 	love.GarrisonedCells = {}
 	love.window.setMode(Config.WindowSize.X, Config.WindowSize.Y)
-	lastUpdate = love.timer.getTime()
+	last_mem_update = love.timer.getTime()
+
+	DiffTime.start("simulation update rate")
 
 	Log("love.load() completed!")
 end
 
-local isUpdating = false
+local max_mem_usage = 0
+local min_mem_usage = math.huge
+local mem_usage = 0
+local mem_usage_sum, mem_usage_quantity = 0, 0
+local average_mem_usage = 0
 function love.update(dt)
-	if (not isUpdating) and (love.timer.getTime() - lastUpdate) > Config.UpdateRate then
-		isUpdating = true
+	mem_usage = math.floor(collectgarbage("count")) / 1000
+	
+	if (love.timer.getTime() - last_mem_update) >= 1 then
+		average_mem_usage = math.floor(mem_usage_sum / mem_usage_quantity * 100) / 100
+		mem_usage_sum = 0
+		mem_usage_quantity = 0
+		last_mem_update = love.timer.getTime()
+	end
+
+	mem_usage_sum = mem_usage_sum + mem_usage
+	mem_usage_quantity = mem_usage_quantity + 1
+
+	if mem_usage > max_mem_usage then
+		max_mem_usage = mem_usage
+	end
+
+	if mem_usage < min_mem_usage then
+		min_mem_usage = mem_usage
+	end
+
+	if (not isUpdating) and (DiffTime.calculate("simulation update rate", true, true)) > Config.UpdateRate then
 
 		love.CellGrid:Iterate(function(column, row, value)
 			local repaste = false
@@ -176,12 +270,18 @@ function love.update(dt)
 		love.CellGrid = love.NextCellGrid
 		love.NextCellGrid = BiArray.new(Config.World.Columns, Config.World.Rows)
 
-		lastUpdate = love.timer.getTime()
-		isUpdating = false
+		DiffTime.start("simulation update rate")
 	end
 end
 
 function love.draw()
+	love.graphics.setColor(1, 1, 1)
+
+	love.graphics.print("avg:  " .. tostring(average_mem_usage) .. "MB", 1010, 10)
+	love.graphics.print("max:  " .. tostring(max_mem_usage) .. "MB", 1010, 30)
+	love.graphics.print("min:  " .. tostring(min_mem_usage) .. "MB", 1010, 50)
+	love.graphics.print("cur:  " .. tostring(mem_usage) .. "MB", 1010, 70)
+
 	love.graphics.setBackgroundColor(0, 0, 0)
 
     love.CellGrid:Iterate(function(column, row, value)
@@ -189,10 +289,10 @@ function love.draw()
 		love.graphics.setLineWidth(2)
 		love.graphics.setColor(0, 0, 0)
 		love.graphics.rectangle(
-			"line", 
-			(column - 1) * Config.CellSize.X, 
+			"line",
+			(column - 1) * Config.CellSize.X,
 			(row - 1) * Config.CellSize.Y,
-			Config.CellSize.X, 
+			Config.CellSize.X,
 			Config.CellSize.Y
 		)
 
