@@ -7,7 +7,7 @@ local settings = {
     TotalScheduleSize = 8; -- the number of schedules each cell should have
     Seed = "random"; -- can be any number or 'random'
 
-    WorldSize = {
+    WorldExtents = {
         Columns = 150;
         Rows = 150;
     };
@@ -38,8 +38,8 @@ local settings = {
 }
 
 settings.CellSize = {
-    X = settings.WindowSize.X / settings.World.Columns;
-    Y = settings.WindowSize.Y / settings.World.Rows;
+    X = settings.WindowSize.X / settings.WorldExtents.Columns;
+    Y = settings.WindowSize.Y / settings.WorldExtents.Rows;
 }
 
 settings.WorldPixelWidth = settings.WindowSize.X - settings.SidebarWidth

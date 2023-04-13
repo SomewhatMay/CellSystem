@@ -22,29 +22,70 @@ function string.lpad(str, len, char)
     return str .. ((distance > 0 and string.rep(char, distance)) or "")
 end
 
-function Log(noTime, ...)
+function table.find(haystack, needle)
+	for index, value in pairs(haystack) do
+		if value == needle then
+			return index
+		end
+	end
+
+	return nil
+end
+
+LogTypes = {
+	ERROR = {"error", "askodhjasu9gd91jp9sdfh"}; -- Errors in the consoles and halts the program
+	WARN = {"warns", "1390uwed99h8effhspf"}; -- Warns in the console but doesnt halt the program
+	NO_TIME = {"no_time", "dfgi931380dhh9prunvg"}; -- does not display the time information in the log.txt file
+}
+
+--@param logType {LogType} - the type of loggin
+function Log(logType, ...)
     local strings = {...}
     local prefixTime
-    local prefix = ""
-
-    if not (type(noTime) == "boolean" and noTime == true) then
-        prefixTime = love.timer.getTime()
-        prefix = prefixTime .. " : "
-        prefix = string.lpad(prefix, 15)
-        table.insert(strings, 1, noTime)
-    end
-
 	local pString = ""
-    logFile:write("\n" .. prefix)
-    for _, str in pairs(strings) do
-        logFile:write(str)
+
+	for _, str in pairs(strings) do
 		pString = pString .. str
     end
 
-	print(pString)
+	if logType == LogTypes.ERROR then
+		Log(...)
+
+		love.errhand(...)
+	elseif logType == LogTypes.WARN then
+		local traceback = debug.traceback("Warning: " .. tostring(pString), 2)
+
+		print(traceback)
+	elseif logType ~= LogTypes.NO_TIME then
+		prefixTime = love.timer.getTime()
+		local prefix = prefixTime .. " : "
+		prefix = string.lpad(prefix, 15)
+
+		pString = prefix .. logType .. pString
+
+		print(pString)
+    end
+	
+    logFile:write("\n" .. pString)
 
     return prefixTime
 end
+
+function love.errhand(msg)
+	local traceback = debug.traceback("Error: " .. tostring(msg), 2)
+	love.graphics.setColor(255, 0, 0)
+	love.graphics.print(traceback, 10, 10)
+	love.graphics.present()
+	love.event.pump()
+
+	while true do
+		local event = love.event.wait()
+			if event == "quit" then
+			return
+		end
+	end
+end
+
 
 if _Global_log_file then
 	Log("Cannot create local log file. Using global..")
@@ -95,7 +136,6 @@ local function import(path)
 	loadedModule = require(path)
 	
 	Modules[moduleName] = loadedModule
-	Log("Successfully imported - ", path)
 
 	return loadedModule
 end
@@ -111,12 +151,12 @@ do
 	end)
 
 	local success2 = pcall(function()
-		Config = import("Config")
+		Config = import("Config", true)
 	end)
 
 	if not success1 then
-		Log("No Config-deafult.lua! This is a required file to continue. Please refresh origin!")
-		error("No Config-deafult.lua! This is a required file to continue. Please refresh origin!")
+		Log("here")
+		Log(LogTypes.ERROR, "No Config-deafult.lua! This is a required file to continue. Please refresh origin!")
 	end
 	
 	if success2 then
@@ -164,16 +204,18 @@ local mem_usage = 0
 local mem_usage_sum, mem_usage_quantity = 0, 0
 local average_mem_usage = 0
 
+local clickedTargetCellFont
 function love.load()
 	Log("love.load() started - Initiating all cells...")
 
 	love.CellSpawnRandom = Random.new(Config.Seed)
+	clickedTargetCellFont = love.graphics.newFont(16)
 
 	--love.GarrisonedCellsDisplay = BiArray.new(Config.World.Columns, Config.World.Rows, 0)
 
 	--local chance = 10
-	love.NextCellGrid = BiArray.new(Config.WorldSize.Columns, Config.WorldSize.Rows)
-	love.CellGrid = BiArray.new(Config.WorldSize.Columns, Config.WorldSize.Rows, function(column, row)
+	love.NextCellGrid = BiArray.new(Config.WorldExtents.Columns, Config.WorldExtents.Rows)
+	love.CellGrid = BiArray.new(Config.WorldExtents.Columns, Config.WorldExtents.Rows, function(column, row)
 		local chance = love.CellSpawnRandom:NextInt(1, 150)
 		--chance = chance - 1
 		
@@ -205,7 +247,6 @@ function love.load()
 end
 
 local clickedTargetCell
-local clickedTargetCellFont
 function love.update(dt)
 	-- Memory stuff
 	mem_usage = math.floor(collectgarbage("count")) / 1000
@@ -227,8 +268,6 @@ function love.update(dt)
 	if mem_usage < min_mem_usage then
 		min_mem_usage = mem_usage
 	end
-
-	clickedTargetCellFont = love.graphics.newFont(16)
 
 	if (DiffTime.calculate("simulation update rate", true, true)) > Config.UpdateRate then
 
