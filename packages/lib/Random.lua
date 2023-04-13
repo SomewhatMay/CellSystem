@@ -8,11 +8,11 @@ randomObject.__index = randomObject
 
 function randomObject:NextInt(min, max)
     if not (min and max) then
-        min = 0
+        min = 1
         max = self.m
     elseif not max then
         max = min
-        min = 0
+        min = 1
     end
 
     local range = max - min + 1

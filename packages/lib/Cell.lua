@@ -46,7 +46,7 @@ end
 
 function cellClass.new(position, ancestry)
 	position = position or {X = 0; Y = 0}
-	ancestry = ancestry or love.Modules.UUID()
+	ancestry = ancestry or Packages.UUID()
 
 	local self = {
 		type = "cell";
@@ -66,9 +66,9 @@ function cellClass.new(position, ancestry)
 end
 
 function cellClass.Init()
-	Config = love.Modules.Config
-	TableToString = love.Modules.TableToString
-	ScheduleService = love.Modules.ScheduleService
+	Config = Packages.Config
+	TableToString = Packages.TableToString
+	ScheduleService = Packages.ScheduleService
 end
 
 return cellClass

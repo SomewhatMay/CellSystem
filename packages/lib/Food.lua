@@ -40,8 +40,8 @@ function foodClass.new(position)
 end
 
 function foodClass.Init()
-	Config = love.Modules.Config
-	ScheduleService = love.Modules.ScheduleService
+	Config = Packages.Config
+	ScheduleService = Packages.ScheduleService
 end
 
 return foodClass
