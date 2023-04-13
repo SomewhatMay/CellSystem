@@ -7,7 +7,7 @@ local settings = {
     TotalScheduleSize = 8; -- the number of schedules each cell should have
     Seed = "random"; -- can be any number or 'random'
 
-    World = {
+    WorldExtents = {
         Columns = 150;
         Rows = 150;
     };
