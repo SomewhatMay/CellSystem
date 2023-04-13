@@ -12,6 +12,9 @@ local settings = {
         Rows = 150;
     };
 
+    SidebarWidth = 300;
+    WorldPixelWidth = nil; -- Will be determined based on SidebarWidth
+
     WindowSize = {
         X = 1000;
         Y = 1000;
@@ -37,6 +40,8 @@ local settings = {
 settings.CellSize = {
     X = settings.WindowSize.X / settings.World.Columns;
     Y = settings.WindowSize.Y / settings.World.Rows;
-} 
+}
+
+settings.WorldPixelWidth = settings.WindowSize.X - settings.SidebarWidth
 
 return settings
