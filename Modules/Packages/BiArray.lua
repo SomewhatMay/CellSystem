@@ -14,6 +14,10 @@ function biArray:Set(column, row, value)
 	self.Array[index] = value
 end
 
+function biArray:Increment(column, row, incrementValue)
+	self:Set(column, row, self:Get(column, row) + incrementValue)
+end
+
 function biArray:Iterate(func)
 	for column = 1, self.Columns, 1 do
 		for row = 1, self.Rows, 1 do

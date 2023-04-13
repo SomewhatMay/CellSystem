@@ -7,7 +7,7 @@ local Actions = {}
 local function random(a, b)
     a, b = a or 1, b or 10
     
-    return love.math.random(a, b) - 1
+    return love.CellSpawnRandom:NextInt(a, b) - 1
 end
 
 local function wrap(a, max)

@@ -129,6 +129,8 @@ do
 		Log("No local config - using deafult config.")
 		Config = Config_Deafult
 	end
+
+	love.Modules.Config = Config
 end
 
 -- Importing required modules
@@ -137,9 +139,9 @@ local CellClass = import("Modules.Packages.Cell")
 local FoodClass = import("Modules.Packages.Food")
 local UUID = import("Modules.Packages.UUID")
 local UUID = import("Modules.ScheduleService")
-local ActionClass = import("Modules.Packages.ActionClass")
 local Evals = import("Modules.Packages.Evals")
 local TableToString = import("Modules.Packages.TableToString")
+local Random = import("Modules.Packages.Random")
 
 Log("All modules imported. Initating all modules...")
 
@@ -153,15 +155,25 @@ end
 
 Log("All modules loaded in " .. DiffTime.calculate("Module init startup") .. "ms")
 
+-- Memory stuff
 local last_mem_update
+local max_mem_usage = 0
+local min_mem_usage = math.huge
+local mem_usage = 0
+local mem_usage_sum, mem_usage_quantity = 0, 0
+local average_mem_usage = 0
 
 function love.load()
 	Log("love.load() started - Initiating all cells...")
 
+	love.CellSpawnRandom = Random.new(Config.Seed)
+
+	--love.GarrisonedCellsDisplay = BiArray.new(Config.World.Columns, Config.World.Rows, 0)
+
 	--local chance = 10
 	love.NextCellGrid = BiArray.new(Config.World.Columns, Config.World.Rows)
 	love.CellGrid = BiArray.new(Config.World.Columns, Config.World.Rows, function(column, row)
-		local chance = love.math.random(1, 150)
+		local chance = love.CellSpawnRandom:NextInt(1, 150)
 		--chance = chance - 1
 		
 		if chance == 1 then
@@ -191,12 +203,10 @@ function love.load()
 	Log("love.load() completed!")
 end
 
-local max_mem_usage = 0
-local min_mem_usage = math.huge
-local mem_usage = 0
-local mem_usage_sum, mem_usage_quantity = 0, 0
-local average_mem_usage = 0
+local clickedTargetCell
+local clickedTargetCellFont
 function love.update(dt)
+	-- Memory stuff
 	mem_usage = math.floor(collectgarbage("count")) / 1000
 	
 	if (love.timer.getTime() - last_mem_update) >= 1 then
@@ -217,12 +227,14 @@ function love.update(dt)
 		min_mem_usage = mem_usage
 	end
 
-	if (not isUpdating) and (DiffTime.calculate("simulation update rate", true, true)) > Config.UpdateRate then
+	clickedTargetCellFont = love.graphics.newFont(16)
+
+	if (DiffTime.calculate("simulation update rate", true, true)) > Config.UpdateRate then
 
 		love.CellGrid:Iterate(function(column, row, value)
 			local repaste = false
 			
-			if value then 
+			if value then
 				if value.type == "cell" then
 					if value.Alive ~= true then return end
 					
@@ -248,7 +260,9 @@ function love.update(dt)
 
 						garrisonedCell.Points = garrisonedCell.Points + Config.Points.Death
 						garrisonedCell.Alive = false
+
 						table.insert(love.GarrisonedCells, garrisonedCell)
+						--love.GarrisonedCellsDisplay:Increment(value.Position.X, value.Position.Y, 1)
 					elseif residingCell and residingCell.type == "food" then
 						love.CellGrid:Set(value.Position.X, value.Position.Y, nil)
 						love.NextCellGrid:Set(value.Position.X, value.Position.Y, nil)
@@ -258,6 +272,8 @@ function love.update(dt)
 			    	end
 				elseif value.type == "food" then
 					repaste = true
+				else
+					Log("Cell type unknown!")
 				end
 			end
 
@@ -266,15 +282,16 @@ function love.update(dt)
 			end
 		end)
 
-		love.CellGrid:Destroy()
-		love.CellGrid = love.NextCellGrid
-		love.NextCellGrid = BiArray.new(Config.World.Columns, Config.World.Rows)
+		-- Empty and replace the two BiArrays so we dont have to create a new one every frame
+		love.CellGrid:Empty()
+		love.CellGrid, love.NextCellGrid = love.NextCellGrid, love.CellGrid 
 
 		DiffTime.start("simulation update rate")
 	end
 end
 
 function love.draw()
+	-- Memory stuff
 	love.graphics.setColor(1, 1, 1)
 
 	love.graphics.print("avg:  " .. tostring(average_mem_usage) .. "MB", 1010, 10)
@@ -284,22 +301,93 @@ function love.draw()
 
 	love.graphics.setBackgroundColor(0, 0, 0)
 
+	-- Cell drawing
     love.CellGrid:Iterate(function(column, row, value)
+		local TopLeftPosition = {
+			X = (column - 1) * Config.CellSize.X;
+			Y = (row - 1) * Config.CellSize.Y
+		}
+
 		-- Outlines
 		love.graphics.setLineWidth(2)
 		love.graphics.setColor(0, 0, 0)
 		love.graphics.rectangle(
 			"line",
-			(column - 1) * Config.CellSize.X,
-			(row - 1) * Config.CellSize.Y,
+			TopLeftPosition.X,
+			TopLeftPosition.Y,
 			Config.CellSize.X,
 			Config.CellSize.Y
 		)
 
 		if value then
-			value:Draw()
+			value:Draw(TopLeftPosition)
 		end
 	end)
+
+	-- Target cell info gatherer
+	local targetCell
+	local mouseX, mouseY = love.mouse.getPosition()
+	local targetPosition = {
+		X = math.ceil(mouseX / Config.CellSize.X);
+		Y = math.ceil(mouseY / Config.CellSize.Y);
+	}
+
+	if love.mouse.isDown(1) then
+		local currentCell = love.CellGrid:Get(targetPosition.X, targetPosition.Y)
+		local stringedCellData = currentCell and ("(%s, " .. "%s) %s"):format(currentCell.Position.X, currentCell.Position.Y, 
+			((currentCell.type == "cell" and "- " .. currentCell.Points) or "")
+		);
+
+		clickedTargetCell = currentCell and {
+			Cell = currentCell;
+
+			text = love.graphics.newText(clickedTargetCellFont, stringedCellData);
+
+			targetCellPosition = {
+				X = currentCell.Position.X * Config.CellSize.X; 
+				Y = currentCell.Position.Y * Config.CellSize.Y
+			};
+		}
+
+		if not clickedTargetCell then
+			clickedTargetCell = nil
+		end
+	end
+
+	targetCell = clickedTargetCell
+
+	if not clickedTargetCell then
+		local currentCell = love.CellGrid:Get(targetPosition.X, targetPosition.Y)
+		local stringedCellData = currentCell and ("(%s, " .. "%s) %s"):format(currentCell.Position.X, currentCell.Position.Y, 
+			((currentCell.type == "cell" and "- " .. currentCell.Points) or "")
+		);
+
+		targetCell = currentCell and {
+			Cell = currentCell;
+
+			text = love.graphics.newText(clickedTargetCellFont, stringedCellData);
+
+			targetCellPosition = {
+				X = currentCell.Position.X * Config.CellSize.X; 
+				Y = currentCell.Position.Y * Config.CellSize.Y
+			};
+		}
+	end
+
+	if targetCell then
+		love.graphics.setColor(1, 1, 1, .5)
+		love.graphics.rectangle("fill", 8, 10, targetCell.text:getWidth() + 3, targetCell.text:getHeight() + 3)
+		love.graphics.setColor(0, 0, 0)
+		love.graphics.draw(targetCell.text, 10, 12)
+	end
+
+	-- GarrisonedCellsDisplay
+	-- love.graphics.setColor(1, 1, 1)
+	-- love.GarrisonedCellsDisplay:Iterate(function(column, row, value)
+	-- 	if value > 0 then
+	-- 		love.graphics.print(value, (column - 1) * Config.CellSize.X, (row - 1) * Config.CellSize.Y)
+	-- 	end
+	-- end)
 end
 
 function love.quit()

@@ -6,12 +6,17 @@ local cellClass = {}
 local cell = {}
 cell.__index = cell
 
-function cell:Draw()
+function cell:Draw(TopLeftPosition)
+	TopLeftPosition = TopLeftPosition or {
+		X = (self.Position.X - 1) * Config.CellSize.X;
+		Y = (self.Position.Y - 1) * Config.CellSize.Y;
+	}
+
 	love.graphics.setColor(math.max(255 - self.Points, 0) / 255, 1, math.max(255 - self.Points, 0) / 255)
 	love.graphics.rectangle(
 		"fill", 
-		(self.Position.X - 1) * Config.CellSize.X,
-		(self.Position.Y - 1) * Config.CellSize.Y,
+		TopLeftPosition.X,
+		TopLeftPosition.Y,
 		Config.CellSize.X,
 		Config.CellSize.Y
 	)
