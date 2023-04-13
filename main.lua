@@ -172,8 +172,8 @@ function love.load()
 	--love.GarrisonedCellsDisplay = BiArray.new(Config.World.Columns, Config.World.Rows, 0)
 
 	--local chance = 10
-	love.NextCellGrid = BiArray.new(Config.WorldExtents.Columns, Config.WorldExtents.Rows)
-	love.CellGrid = BiArray.new(Config.WorldExtents.Columns, Config.WorldExtents.Rows, function(column, row)
+	love.NextCellGrid = BiArray.new(Config.WorldSize.Columns, Config.WorldSize.Rows)
+	love.CellGrid = BiArray.new(Config.WorldSize.Columns, Config.WorldSize.Rows, function(column, row)
 		local chance = love.CellSpawnRandom:NextInt(1, 150)
 		--chance = chance - 1
 		
