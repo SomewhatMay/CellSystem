@@ -6,12 +6,17 @@ local cellClass = {}
 local cell = {}
 cell.__index = cell
 
-function cell:Draw()
+function cell:Draw(TopLeftPosition)
+	TopLeftPosition = TopLeftPosition or {
+		X = (self.Position.X - 1) * Config.CellSize.X;
+		Y = (self.Position.Y - 1) * Config.CellSize.Y;
+	}
+
 	love.graphics.setColor(math.max(255 - self.Points, 0) / 255, 1, math.max(255 - self.Points, 0) / 255)
 	love.graphics.rectangle(
 		"fill", 
-		(self.Position.X - 1) * Config.CellSize.X,
-		(self.Position.Y - 1) * Config.CellSize.Y,
+		TopLeftPosition.X,
+		TopLeftPosition.Y,
 		Config.CellSize.X,
 		Config.CellSize.Y
 	)
@@ -41,7 +46,7 @@ end
 
 function cellClass.new(position, ancestry)
 	position = position or {X = 0; Y = 0}
-	ancestry = ancestry or love.Modules.UUID()
+	ancestry = ancestry or Packages.UUID()
 
 	local self = {
 		type = "cell";
@@ -61,9 +66,9 @@ function cellClass.new(position, ancestry)
 end
 
 function cellClass.Init()
-	Config = love.Modules.Config
-	TableToString = love.Modules.TableToString
-	ScheduleService = love.Modules.ScheduleService
+	Config = Packages.Config
+	TableToString = Packages.TableToString
+	ScheduleService = Packages.ScheduleService
 end
 
 return cellClass

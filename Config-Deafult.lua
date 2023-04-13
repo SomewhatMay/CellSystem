@@ -1,11 +1,19 @@
+-- This will be used if there is no local Config.lua
+-- The Config.lua always overwrites this config
+-- It is highly recommended to use a local Config.lua to change new variables
+
 local settings = {
     UpdateRate = .01; -- tickrate; in seconds
     TotalScheduleSize = 8; -- the number of schedules each cell should have
+    Seed = "random"; -- can be any number or 'random'
 
-    World = {
+    WorldExtents = {
         Columns = 150;
         Rows = 150;
     };
+
+    SidebarWidth = 300;
+    WorldPixelWidth = nil; -- Will be determined based on SidebarWidth
 
     WindowSize = {
         X = 1000;
@@ -30,8 +38,10 @@ local settings = {
 }
 
 settings.CellSize = {
-    X = settings.WindowSize.X / settings.World.Columns;
-    Y = settings.WindowSize.Y / settings.World.Rows;
-} 
+    X = settings.WindowSize.X / settings.WorldExtents.Columns;
+    Y = settings.WindowSize.Y / settings.WorldExtents.Rows;
+}
+
+settings.WorldPixelWidth = settings.WindowSize.X - settings.SidebarWidth
 
 return settings

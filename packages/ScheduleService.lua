@@ -7,7 +7,7 @@ local Actions = {}
 local function random(a, b)
     a, b = a or 1, b or 10
     
-    return love.math.random(a, b) - 1
+    return love.CellSpawnRandom:NextInt(a, b) - 1
 end
 
 local function wrap(a, max)
@@ -106,14 +106,14 @@ function ScheduleService.readSchedule(cell, schedule, peviousArgument)
 end
 
 function ScheduleService.Init()
-    Config = love.Modules.Config
-    Evals = love.Modules.Evals
+    Config = Packages.Config
+    Evals = Packages.Evals
 
-    local ActionFiles = love.filesystem.getDirectoryItems("Modules/Actions")
+    local ActionFiles = love.filesystem.getDirectoryItems("packages/actions")
 
     for index, actionName in pairs(ActionFiles) do
         actionName = string.gsub(actionName, ".lua", "")
-        Actions[index] = require("Modules/Actions/" .. actionName)
+        Actions[index] = require("packages/actions/" .. actionName)
     end
 end
 
