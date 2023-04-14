@@ -109,11 +109,11 @@ function ScheduleService.Init()
     Config = Packages.Config
     Evals = Packages.Evals
 
-    local ActionFiles = love.filesystem.getDirectoryItems("packages/actions")
+    local ActionFiles = love.filesystem.getDirectoryItems("src/actions")
 
     for index, actionName in pairs(ActionFiles) do
         actionName = string.gsub(actionName, ".lua", "")
-        Actions[index] = require("packages/actions/" .. actionName)
+        Actions[index] = require("src/actions/" .. actionName)
     end
 end
 

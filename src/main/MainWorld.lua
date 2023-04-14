@@ -1,9 +1,15 @@
-local MainWorld = {}
+local MainWorld = {
+	GamePaused = false;
+	UpdateRate = nil;
+	Generation = 0;
+	Day = 0;
+}
 
-local clickedTargetCellFont
 function MainWorld.load()
-    clickedTargetCellFont = love.graphics.newFont(16)
-
+	MainWorld.UpdateRate = Config.UpdateRate
+	MainWorld.Generation = 1
+	MainWorld.Day = 1
+	
     Log("Initiating all cells...")
 
     love.CellSpawnRandom = Packages.Random.new(Config.Seed)
@@ -17,7 +23,7 @@ function MainWorld.load()
 		--chance = chance - 1
 		
 		if chance == 1 then
-			local cell = Packages.Cell.new({
+			local cell = Packages.CellClass.new({
 				X = column;
 				Y = row
 			})
@@ -25,7 +31,7 @@ function MainWorld.load()
 
 			return cell
 		elseif chance == 2 or chance == 4 then
-			local food = Packages.Food.new({
+			local food = Packages.FoodClass.new({
 				X = column;
 				Y = row;
 			})
@@ -40,9 +46,9 @@ function MainWorld.load()
 	DifferenceTime.start("simulation update rate")
 end
 
-local clickedTargetCell
 function MainWorld.update()
-    if (DifferenceTime.calculate("simulation update rate", true, true)) > Config.UpdateRate then
+    if ((DifferenceTime.calculate("simulation update rate", true, true)) > Config.UpdateRate) and (not MainWorld.GamePaused) then
+		MainWorld.Day = MainWorld.Day + 1
 
 		love.CellGrid:Iterate(function(column, row, value)
 			local repaste = false
@@ -105,7 +111,7 @@ end
 
 function MainWorld.draw()
     -- Cell drawing
-    love.CellGrid:Iterate(function(column, row, value)
+	love.CellGrid:Iterate(function(column, row, value)
 		local TopLeftPosition = {
 			X = (column - 1) * Config.CellSize.X;
 			Y = (row - 1) * Config.CellSize.Y
@@ -127,62 +133,13 @@ function MainWorld.draw()
 		end
 	end)
 
-	-- Target cell info gatherer
-	local targetCell
-	local mouseX, mouseY = love.mouse.getPosition()
-	local targetPosition = {
-		X = math.ceil(mouseX / Config.CellSize.X);
-		Y = math.ceil(mouseY / Config.CellSize.Y);
-	}
-
-	if love.mouse.isDown(1) then
-		local currentCell = love.CellGrid:Get(targetPosition.X, targetPosition.Y)
-		local stringedCellData = currentCell and ("(%s, " .. "%s) %s"):format(currentCell.Position.X, currentCell.Position.Y, 
-			((currentCell.type == "cell" and "- " .. currentCell.Points) or "")
-		);
-
-		clickedTargetCell = currentCell and {
-			Cell = currentCell;
-
-			text = love.graphics.newText(clickedTargetCellFont, stringedCellData);
-
-			targetCellPosition = {
-				X = currentCell.Position.X * Config.CellSize.X; 
-				Y = currentCell.Position.Y * Config.CellSize.Y
-			};
-		}
-
-		if not clickedTargetCell then
-			clickedTargetCell = nil
-		end
-	end
-
-	targetCell = clickedTargetCell
-
-	if not clickedTargetCell then
-		local currentCell = love.CellGrid:Get(targetPosition.X, targetPosition.Y)
-		local stringedCellData = currentCell and ("(%s, " .. "%s) %s"):format(currentCell.Position.X, currentCell.Position.Y, 
-			((currentCell.type == "cell" and "- " .. currentCell.Points) or "")
-		);
-
-		targetCell = currentCell and {
-			Cell = currentCell;
-
-			text = love.graphics.newText(clickedTargetCellFont, stringedCellData);
-
-			targetCellPosition = {
-				X = currentCell.Position.X * Config.CellSize.X; 
-				Y = currentCell.Position.Y * Config.CellSize.Y
-			};
-		}
-	end
-
-	if targetCell then
-		love.graphics.setColor(1, 1, 1, .5)
-		love.graphics.rectangle("fill", 8, 10, targetCell.text:getWidth() + 3, targetCell.text:getHeight() + 3)
-		love.graphics.setColor(0, 0, 0)
-		love.graphics.draw(targetCell.text, 10, 12)
-	end
+	-- GarrisonedCellsDisplay
+	-- love.graphics.setColor(1, 1, 1)
+	-- love.GarrisonedCellsDisplay:Iterate(function(column, row, value)
+	-- 	if value > 0 then
+	-- 		love.graphics.print(value, (column - 1) * Config.CellSize.X, (row - 1) * Config.CellSize.Y)
+	-- 	end
+	-- end)
 end
 
 return MainWorld

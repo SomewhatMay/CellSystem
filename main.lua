@@ -124,7 +124,7 @@ end
 Log("Attempting to import modules...")
 
 local Modules = {}
-local function import(path)
+local function import(path, indexName)
 	local lastPeriod = string.find(path, "%.[^%.]*$")
 	local moduleName = string.sub(path, (lastPeriod or 0) + 1, #path)
 	local loadedModule = Modules[moduleName]
@@ -135,7 +135,7 @@ local function import(path)
 
 	loadedModule = require(path)
 	
-	Modules[moduleName] = loadedModule
+	Modules[indexName or moduleName] = loadedModule
 
 	return loadedModule
 end
@@ -175,16 +175,16 @@ do
 end
 
 -- Importing required modules
-local BiArray = import("packages.lib.BiArray")
-local CellClass = import("packages.lib.Cell")
-local FoodClass = import("packages.lib.Food")
-local UUID = import("packages.lib.UUID")
-local ScheduleService = import("packages.ScheduleService")
-local Sidebar = import("packages.canvases.Sidebar")
-local MainWorld = import("packages.canvases.MainWorld")
-local Evals = import("packages.lib.Evals")
-local TableToString = import("packages.lib.TableToString")
-local Random = import("packages.lib.Random")
+local BiArray = import("src.lib.BiArray")
+local CellClass = import("src.lib.Cell", "CellClass")
+local FoodClass = import("src.lib.Food", "FoodClass")
+local UUID = import("src.lib.UUID")
+local ScheduleService = import("src.main.ScheduleService")
+local Sidebar = import("src.main.Sidebar")
+local MainWorld = import("src.main.MainWorld")
+local Evals = import("src.lib.Evals")
+local TableToString = import("src.lib.TableToString")
+local Random = import("src.lib.Random")
 
 Log("All modules imported. Initating all modules...")
 
@@ -207,7 +207,7 @@ local mem_usage_sum, mem_usage_quantity = 0, 0
 local average_mem_usage = 0
 
 function love.load()
-	Log("love.load() started - calling .load() on all canvases...")
+	Log("love.load() started - calling .load() on all modules...")
 
 	for _, module in pairs(Modules) do
 		if type(module) == "table" and module.load then
@@ -221,6 +221,12 @@ function love.load()
 end
 
 function love.update(dt)
+	for _, module in pairs(Modules) do
+		if type(module) == "table" and module.update then
+			module.update(dt)
+		end
+	end
+
 	-- Memory stuff
 	mem_usage = math.floor(collectgarbage("count")) / 1000
 	
@@ -241,11 +247,15 @@ function love.update(dt)
 	if mem_usage < min_mem_usage then
 		min_mem_usage = mem_usage
 	end
-
-	MainWorld.update(dt)
 end
 
 function love.draw()
+	for _, module in pairs(Modules) do
+		if type(module) == "table" and module.draw then
+			module.draw()
+		end
+	end
+
 	-- Memory stuff
 	love.graphics.setColor(1, 1, 1)
 
@@ -253,23 +263,16 @@ function love.draw()
 	love.graphics.print("max:  " .. tostring(max_mem_usage) .. "MB", 1010, 30)
 	love.graphics.print("min:  " .. tostring(min_mem_usage) .. "MB", 1010, 50)
 	love.graphics.print("cur:  " .. tostring(mem_usage) .. "MB", 1010, 70)
-
-	love.graphics.setBackgroundColor(0, 0, 0)
-
-	-- GarrisonedCellsDisplay
-	-- love.graphics.setColor(1, 1, 1)
-	-- love.GarrisonedCellsDisplay:Iterate(function(column, row, value)
-	-- 	if value > 0 then
-	-- 		love.graphics.print(value, (column - 1) * Config.CellSize.X, (row - 1) * Config.CellSize.Y)
-	-- 	end
-	-- end)
-
-
-
-	MainWorld.draw()
-	Sidebar:Draw()
 end
 
 function love.quit()
+	Log("Calling quit on all modules...")
+
+	for _, module in pairs(Modules) do
+		if type(module) == "table" and module.quit then
+			module.quit()
+		end
+	end
+
 	Log("Quitting successfully.")
 end
