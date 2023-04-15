@@ -107,14 +107,12 @@ function MainWorld.NextGeneration()
 
 	MainWorld.Generation = MainWorld.Generation + 1
 
-	-- Empty both grids so we can replace them with new generation cells
+	-- Empty both cells so we can replace them with new generation
 	love.CellGrid:Empty()
 	love.NextCellGrid:Empty()
 
-	-- Update the cells with possibilities
-	love.CellGrid:Iterate(function(column, row)
+	love.CellGrid:Fill(function(column, row)
 		local chance = love.CellSpawnRandom:NextInt(1, 150)
-		--chance = chance - 1
 		
 		if chance == 1 then
 			local cell = Packages.CellClass.new(Vector2.new(column, row))
@@ -134,6 +132,8 @@ end
 
 function MainWorld.load()
 	MainWorld.UpdateRate = Config.UpdateRate
+	MainWorld.Generation = 1
+	MainWorld.Day = 1
 	
     Log("Initiating all cells...")
 
@@ -141,8 +141,9 @@ function MainWorld.load()
 
 	love.NextCellGrid = Packages.BiArray.new(Config.WorldExtents.Columns, Config.WorldExtents.Rows)
 	love.CellGrid = Packages.BiArray.new(Config.WorldExtents.Columns, Config.WorldExtents.Rows)
-	MainWorld.NextGeneration()
 
+	MainWorld.NextGeneration()
+	
 	love.window.setMode(Config.WindowSize.X, Config.WindowSize.Y)
 
 	DifferenceTime.start("simulation update rate")
