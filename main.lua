@@ -211,6 +211,7 @@ local mem_usage_sum, mem_usage_quantity = 0, 0
 local average_mem_usage = 0
 
 function love.load()
+	DifferenceTime.start("love.load() start timer")
 	Log("love.load() started - calling .load() on all modules...")
 
 	for _, module in pairs(Modules) do
@@ -221,7 +222,7 @@ function love.load()
 
 	last_mem_update = love.timer.getTime()
 
-	Log("love.load() completed!")
+	Log("love.load() completed in " .. DifferenceTime.calculate("love.load() start timer") .. "ms!")
 end
 
 function love.update(dt)
