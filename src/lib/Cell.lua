@@ -56,6 +56,7 @@ function cellClass.new(position, ancestry)
 		Position = position;
 		Pointer = 1;
 		LatestResult = nil;
+		Schedule = nil;
 		Alive = true;
 	}
 

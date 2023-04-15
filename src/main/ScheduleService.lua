@@ -105,6 +105,17 @@ function ScheduleService.readSchedule(cell, schedule, peviousArgument)
     end
 end
 
+-- @returns {string} schedule -- turns the TopSchedule into a stringed format with the '-' seperating each 'schedule'
+function ScheduleService.toString(topSchedule)
+    local str = ""
+
+    for _, schedule in pairs(topSchedule) do
+        str = str .. " - " .. schedule
+    end
+
+    return str
+end
+
 function ScheduleService.Init()
     Config = Packages.Config
     Evals = Packages.Evals

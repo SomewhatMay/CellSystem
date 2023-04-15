@@ -7,7 +7,7 @@ local SelectionFrame = {
 
     Size = UDIM2.new(
         Config.SidebarWidth - 20,
-        150
+        180
     );
 
     TitleText = nil;
@@ -27,41 +27,41 @@ function SelectionFrame.load(_Sidebar)
     SelectionFrame.TitleText = love.graphics.newText(slectionFrameTitleFont, "Selection")
 
     -- Cell selection entries
-    Entries.CellPosition = FrameEntry.new("Position", nil, Vector2.new(
-        SelectionFrame.Position.X + 5,
-        SelectionFrame.Position.Y + 5 + 50
-    ), UDIM2.new(
-        SelectionFrame.Size.Width - 10,
-        20
-    ))
-
-    Entries.CellPoints = FrameEntry.new("Points", nil, Vector2.new(
-        SelectionFrame.Position.X + 5,
-        SelectionFrame.Position.Y + 5 + 25
-    ), UDIM2.new(
-        SelectionFrame.Size.Width - 10,
-        20
-    ))
-
-    Entries.CellAncestry = FrameEntry.new("Ancestry", nil, Vector2.new(
+    Entries.CellAncestry = FrameEntry.new("Ancestry:", nil, Vector2.new(
         SelectionFrame.Position.X + 5,
         SelectionFrame.Position.Y + 5
     ), UDIM2.new(
         SelectionFrame.Size.Width - 10,
         20
-    ))
+    ), FrameEntry.EntryTypes.NEXT_LINE_VALUE)
 
-    Entries.CellDNA = FrameEntry.new("DNA", nil, Vector2.new(
+    Entries.CellPoints = FrameEntry.new("Points:", nil, Vector2.new(
         SelectionFrame.Position.X + 5,
-        SelectionFrame.Position.Y + 5 + 75
+        SelectionFrame.Position.Y + 5 + 40
     ), UDIM2.new(
         SelectionFrame.Size.Width - 10,
         20
     ))
 
+    Entries.CellPosition = FrameEntry.new("Position:", nil, Vector2.new(
+        SelectionFrame.Position.X + 5,
+        SelectionFrame.Position.Y + 5 + 65
+    ), UDIM2.new(
+        SelectionFrame.Size.Width - 10,
+        20
+    ))
+
+    Entries.CellSchedule = FrameEntry.new("Schedule:", nil, Vector2.new(
+        SelectionFrame.Position.X + 5,
+        SelectionFrame.Position.Y + 5 + 90
+    ), UDIM2.new(
+        SelectionFrame.Size.Width - 10,
+        20
+    ), FrameEntry.EntryTypes.NEXT_LINE_VALUE)
+
     Entries.CellLearnMore = FrameEntry.new("Learn more ...", "", Vector2.new(
         SelectionFrame.Position.X + 5,
-        SelectionFrame.Position.Y + 5 + 100
+        SelectionFrame.Position.Y + 5 + 130
     ), UDIM2.new(
         SelectionFrame.Size.Width - 10,
         20
@@ -92,9 +92,16 @@ function SelectionFrame.draw()
 
 	if targetCell then
 		Entries.CellPosition:UpdateValue(targetCell.Position:toString())
-        Entries.CellPoints:UpdateValue(targetCell.Points)
-        Entries.CellAncestry:UpdateValue(targetCell.Ancestry)
-        Entries.CellDNA:UpdateValue(targetCell.DNA)
+
+        if targetCell.type == "cell" then
+            Entries.CellPoints:UpdateValue(targetCell.Points)
+            Entries.CellAncestry:UpdateValue(targetCell.Ancestry)
+            Entries.CellSchedule:UpdateValue(Packages.ScheduleService.toString(targetCell.Schedule))
+        else
+            Entries.CellPoints:UpdateValue("N/A")
+            Entries.CellAncestry:UpdateValue("N/A")
+            Entries.CellSchedule:UpdateValue("N/A")
+        end
 	end
 
     love.graphics.setColor(1, 1, 1, 1)
@@ -106,7 +113,7 @@ function SelectionFrame.draw()
     Entries.CellPosition:Draw()
     Entries.CellPoints:Draw()
     Entries.CellAncestry:Draw()
-    Entries.CellDNA:Draw()
+    Entries.CellSchedule:Draw()
     Entries.CellLearnMore:Draw()
 end
 
