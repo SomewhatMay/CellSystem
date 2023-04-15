@@ -1,9 +1,44 @@
+local GameStates = {
+	PAUSE = "game_state_paused";
+	RUNNING = "game_state_playing";
+}
+
 local MainWorld = {
-	GamePaused = false;
-	UpdateRate = nil;
+	GameStates = GameStates;
+
+	GameState = GameStates.RUNNING;
 	Generation = 0;
 	Day = 0;
+	FoodAlive = 0;
+	FoodEaten = 0;
+	CellsAlive = 0;
+	CellsGarrisoned = 0;
+	UpdateRate = nil;
 }
+
+function MainWorld.Pause()
+	MainWorld.GameState = GameStates.PAUSE
+end
+
+function MainWorld.Unpause()
+	MainWorld.GameState = GameStates.RUNNING
+end
+
+function MainWorld.TogglePause()
+	if MainWorld.GameState == GameStates.PAUSE then
+		MainWorld.Unpause()
+	else
+		MainWorld.Pause()
+	end
+end
+
+function MainWorld.GetGameStateString()
+	if MainWorld.GameState == GameStates.PAUSE then
+		return "PAUSED"
+	elseif MainWorld.GameState == GameStates.RUNNING then
+		return "RUNNING"
+	end
+end
 
 function MainWorld.NextDay()
 	MainWorld.Day = MainWorld.Day + 1
@@ -35,11 +70,17 @@ function MainWorld.NextDay()
 					garrisonedCell.Points = garrisonedCell.Points + Config.Points.Death
 					garrisonedCell.Alive = false
 
+					MainWorld.CellsGarrisoned = MainWorld.CellsGarrisoned + 1
+					MainWorld.CellsAlive = MainWorld.CellsAlive - 1 
+
 					table.insert(love.GarrisonedCells, garrisonedCell)
 					--love.GarrisonedCellsDisplay:Increment(value.Position.X, value.Position.Y, 1)
 				elseif residingCell and residingCell.type == "food" then
 					love.CellGrid:Set(value.Position.X, value.Position.Y, nil)
 					love.NextCellGrid:Set(value.Position.X, value.Position.Y, nil)
+
+					MainWorld.FoodEaten = MainWorld.FoodEaten + 1
+					MainWorld.FoodAlive = MainWorld.FoodAlive - 1
 
 					residingCell:Destroy()
 					value.Points = value.Points + Config.Points.Food
@@ -88,11 +129,12 @@ function MainWorld.load()
 		
 		if chance == 1 then
 			local cell = Packages.CellClass.new(Vector2.new(column, row))
-			
+			MainWorld.CellsAlive = MainWorld.CellsAlive + 1
 
 			return cell
 		elseif chance == 2 or chance == 4 then
 			local food = Packages.FoodClass.new(Vector2.new(column, row))
+			MainWorld.FoodAlive = MainWorld.FoodAlive + 1
 
 			return food
 		end
@@ -105,7 +147,7 @@ function MainWorld.load()
 end
 
 function MainWorld.update()
-    if ((DifferenceTime.calculate("simulation update rate", true, true)) > Config.UpdateRate) and (not MainWorld.GamePaused) then
+    if ((DifferenceTime.calculate("simulation update rate", true, true)) > Config.UpdateRate) and (MainWorld.GameState ~= GameStates.PAUSE) then
 		MainWorld.NextDay()
 		DifferenceTime.start("simulation update rate")
 	end

@@ -177,26 +177,68 @@ do
 end
 
 -- Importing required modules
+-- lib
 local Vector2 = import("src.lib.Vector2")
 local UDIM2 = import("src.lib.UDIM2")
 local BiArray = import("src.lib.BiArray")
 local CellClass = import("src.lib.Cell", "CellClass")
 local FoodClass = import("src.lib.Food", "FoodClass")
 local UUID = import("src.lib.UUID")
-local ScheduleService = import("src.main.ScheduleService")
-local Sidebar = import("src.main.Sidebar.init", "Sidebar")
-local MainWorld = import("src.main.MainWorld")
 local Evals = import("src.lib.Evals")
 local TableToString = import("src.lib.TableToString")
 local Random = import("src.lib.Random")
+local FrameEntry = import("src.lib.FrameEntry")
+-- main
+local ScheduleService = import("src.main.ScheduleService")
+local Sidebar = import("src.main.Sidebar.init", "Sidebar")
+local MainWorld = import("src.main.MainWorld")
 
 Log("All modules imported. Initating all modules...")
 
 DifferenceTime.start("Module init startup")
 -- Initiating all modules
+local ModuleScheduledCalls = {
+	load = {};
+	update = {};
+	draw = {};
+	keyPressed = {};
+	keyReleased = {};
+	mousePressed = {};
+	mouseReleased = {};
+}
 for _, module in pairs(Modules) do
-	if type(module) == "table" and module.Init then
-		module.Init()
+	if type(module) == "table" then
+		if module.Init then
+			module.Init()
+		end
+
+		if module.load then
+			table.insert(ModuleScheduledCalls.load, module)
+		end
+
+		if module.update then
+			table.insert(ModuleScheduledCalls.update, module)
+		end
+
+		if module.draw then
+			table.insert(ModuleScheduledCalls.draw, module)
+		end
+
+		if module.keyPressed then
+			table.insert(ModuleScheduledCalls.keyPressed, module)
+		end
+
+		if module.keyReleased then
+			table.insert(ModuleScheduledCalls.keyReleased, module)
+		end
+
+		if module.mousePressed then
+			table.insert(ModuleScheduledCalls.mousePressed, module)
+		end
+
+		if module.mouseReleased then
+			table.insert(ModuleScheduledCalls.mouseReleased, module)
+		end
 	end
 end
 
@@ -214,10 +256,8 @@ function love.load()
 	DifferenceTime.start("love.load() start timer")
 	Log("love.load() started - calling .load() on all modules...")
 
-	for _, module in pairs(Modules) do
-		if type(module) == "table" and module.load then
-			module.load()
-		end
+	for _, module in pairs(ModuleScheduledCalls.load) do
+		module.load()
 	end
 
 	last_mem_update = love.timer.getTime()
@@ -226,10 +266,8 @@ function love.load()
 end
 
 function love.update(dt)
-	for _, module in pairs(Modules) do
-		if type(module) == "table" and module.update then
-			module.update(dt)
-		end
+	for _, module in pairs(ModuleScheduledCalls.update) do
+		module.update(dt)
 	end
 
 	-- Memory stuff
@@ -254,11 +292,33 @@ function love.update(dt)
 	end
 end
 
+function love.keypressed(key)
+	for _, module in pairs(ModuleScheduledCalls.keyPressed) do
+		module.keyPressed(key)
+	end
+end
+
+function love.keyreleased(key)
+	for _, module in pairs(ModuleScheduledCalls.keyReleased) do
+		module.keyReleased(key)
+	end
+end
+
+function love.mousepressed(x, y, button)
+	for _, module in pairs(ModuleScheduledCalls.mousePressed) do
+		module.mousePressed(x, y, button)
+	end
+end
+
+function love.mousereleased(x, y, button)
+	for _, module in pairs(ModuleScheduledCalls.mouseReleased) do
+		module.mouseReleased(x, y, button)
+	end
+end
+
 function love.draw()
-	for _, module in pairs(Modules) do
-		if type(module) == "table" and module.draw then
-			module.draw()
-		end
+	for _, module in pairs(ModuleScheduledCalls.draw) do
+		module.draw()
 	end
 
 	-- Memory stuff

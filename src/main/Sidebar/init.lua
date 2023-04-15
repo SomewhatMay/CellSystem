@@ -1,12 +1,23 @@
 local Sidebar = {}
-local SelectionFrame = require("src.main.Sidebar.SelectionFrame")
+local SelectionFrame
+local SceneInfoFrame
+local FrameEntry
 
 function Sidebar.load()
-	SelectionFrame.load(Sidebar)
+    FrameEntry = Packages.FrameEntry
+    SelectionFrame = require("src.main.Sidebar.SelectionFrame")
+    SceneInfoFrame = require("src.main.Sidebar.SceneInfoFrame")
+
+    Sidebar.SelectionFrame = SelectionFrame
+    Sidebar.SceneInfoFrame = SceneInfoFrame
+
+	SelectionFrame.load()
+    SceneInfoFrame.load()
 end
 
-function Sidebar.update()
-    
+function Sidebar.update(dt)
+    SelectionFrame.update(dt)
+    SceneInfoFrame.update(dt)
 end
 
 function Sidebar.draw()
@@ -15,6 +26,7 @@ function Sidebar.draw()
     love.graphics.rectangle("fill", Config.WorldPixelWidth, 0, Config.SidebarWidth, Config.WindowSize.Y)
 
 	SelectionFrame.draw()
+    SceneInfoFrame.draw()
 end
 
 return Sidebar
