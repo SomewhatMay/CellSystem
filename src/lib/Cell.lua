@@ -1,3 +1,5 @@
+--// Cell Class \\--
+--// SomewhatMay, April 2023 \\--
 
 local Config
 local TableToString

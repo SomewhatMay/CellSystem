@@ -1,0 +1,7 @@
+Each generation should have a random number of cells. The rules that determine cell reproduction:
+
+We use a method to determine the percentage using this method:
+1 / (3.25 * n) => percentage of cells that should be of specific ancestry
+n represents the place in the leaderboard. For example, the first cell in the leaderboard will have ~30% of the future cell's reproduction and the second will have ~15%. Only cells placed 1 through 10 on the leaderboard get reproduced (~90%). The remaining cells are destroyed (10%) and are replaced by new, random-schedule generated cells. This is to ensure that cells that are useless do not get reproduced, and are replaced by chances of new cells that may have better characteristics.
+
+Each reproduced cell (excluding the 10% newly-generated cells) are to have a 1/10 chance of having a mutalation in each of its dna digits.

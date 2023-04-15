@@ -1,3 +1,6 @@
+--// CellSystem \\--
+--// SomewhatMay, April 2023 \\--
+
 -- This will be used if there is no local Config.lua
 -- The Config.lua always overwrites this config
 -- It is highly recommended to use a local Config.lua to change new variables

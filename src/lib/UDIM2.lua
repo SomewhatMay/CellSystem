@@ -1,3 +1,6 @@
+--// UDIM2 \\--
+--// SomewhatMay, April 2023 \\--
+
 UDIM2 = {}
 local udim2 = {}
 udim2.__index = udim2

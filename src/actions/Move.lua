@@ -1,4 +1,5 @@
--- Move method
+--// Move: Action \\--
+--// SomewhatMay, April 2023 \\--
 
 --wraps if it doesnt fit in the values
 --@param {number} direction - Can be `0` (up) `1` (right) `2` (down) `3` (left)

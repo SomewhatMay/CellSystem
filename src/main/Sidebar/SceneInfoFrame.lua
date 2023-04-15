@@ -1,3 +1,6 @@
+--// SceneInfo: Frame \\--
+--// SomewhatMay, April 2023 \\--
+
 local Sidebar
 local MainWorld
 local SelectionFrame

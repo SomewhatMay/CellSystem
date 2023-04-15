@@ -1,3 +1,6 @@
+--// FrameEntry Class \\--
+--// SomewhatMay, April 2023 \\--
+
 local FrameEntry = {
     Buttons = {};
 }

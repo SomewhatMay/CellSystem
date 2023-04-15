@@ -1,3 +1,6 @@
+--// Random Class \\--
+--// SomewhatMay, April 2023 \\--
+
 local Random = {}
 local randomObject = {
     m = 2^31 - 1;   -- modulus

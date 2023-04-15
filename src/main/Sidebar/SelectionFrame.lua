@@ -1,3 +1,6 @@
+--// SelectionInfo: Frame \\--
+--// SomewhatMay, April 2023 \\--
+
 local Sidebar
 local SelectionFrame = {
     Position = Vector2.new(

@@ -1,3 +1,6 @@
+--// Find Nearest Food: Action \\--
+--// SomewhatMay, April 2023 \\--
+
 local function spiral(x, y, callback)
     local dx, dy = 1, 0
     local steps = 1

@@ -1,13 +1,18 @@
+--// Sidebar \\--
+--// SomewhatMay, April 2023 \\--
+
 local Sidebar = {}
 local SelectionFrame
 local SceneInfoFrame
 local FrameEntry
 
-function Sidebar.load()
+function Sidebar.Init()
     FrameEntry = Packages.FrameEntry
     SelectionFrame = require("src.main.Sidebar.SelectionFrame")
     SceneInfoFrame = require("src.main.Sidebar.SceneInfoFrame")
+end
 
+function Sidebar.load()
     Sidebar.SelectionFrame = SelectionFrame
     Sidebar.SceneInfoFrame = SceneInfoFrame
 

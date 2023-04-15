@@ -1,3 +1,5 @@
+--// CellSystem \\--
+--// SomewhatMay, April 2023 \\--
 
 __Main_version = "4.20.3A"
 
@@ -184,12 +186,12 @@ local BiArray = import("src.lib.BiArray")
 local CellClass = import("src.lib.Cell", "CellClass")
 local FoodClass = import("src.lib.Food", "FoodClass")
 local UUID = import("src.lib.UUID")
-local Evals = import("src.lib.Evals")
+local Evals = import("src.main.ScheduleService.Evals")
 local TableToString = import("src.lib.TableToString")
 local Random = import("src.lib.Random")
 local FrameEntry = import("src.lib.FrameEntry")
 -- main
-local ScheduleService = import("src.main.ScheduleService")
+local ScheduleService = import("src.main.ScheduleService.init", "ScheduleService")
 local Sidebar = import("src.main.Sidebar.init", "Sidebar")
 local MainWorld = import("src.main.MainWorld")
 

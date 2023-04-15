@@ -1,3 +1,6 @@
+--// UUID \\--
+--// SomewhatMay, April 2023 \\--
+
 local random = math.random
 return function()
     local template ='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'

@@ -1,3 +1,6 @@
+--// Vector2 \\--
+--// SomewhatMay, April 2023 \\--
+
 Vector2 = {}
 local vector2 = {}
 vector2.__index = function(self, index)
