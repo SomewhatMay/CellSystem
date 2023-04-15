@@ -1,4 +1,6 @@
 
+__Main_version = "4.20.3A"
+
 -- Log stuff
 local logFile = io.open("Log.txt", "w+")
 _Global_log_file = false
@@ -91,7 +93,7 @@ if _Global_log_file then
 	Log("Cannot create local log file. Using global..")
 end
 
-Log("main.lua starting...")
+Log("main.lua starting... (Version: " .. __Main_version .. ")")
 
 -- Difftime
 DifferenceTime = {Scheduled = {}}
