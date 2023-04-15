@@ -27,7 +27,7 @@ function food:Destroy()
 end
 
 function foodClass.new(position)
-	position = position or {X = 0; Y = 0}
+	position = position or Vector2.new()
 	local self = {
         type = "food";
 

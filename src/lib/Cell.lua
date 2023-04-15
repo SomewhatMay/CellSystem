@@ -45,7 +45,7 @@ function cell:Destroy()
 end
 
 function cellClass.new(position, ancestry)
-	position = position or {X = 0; Y = 0}
+	position = position or Vector2.new()
 	ancestry = ancestry or Packages.UUID()
 
 	local self = {

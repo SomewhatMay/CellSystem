@@ -5,6 +5,70 @@ local MainWorld = {
 	Day = 0;
 }
 
+function MainWorld.NextDay()
+	MainWorld.Day = MainWorld.Day + 1
+
+	love.CellGrid:Iterate(function(column, row, value)
+		local repaste = false
+		
+		if value then
+			if value.type == "cell" then
+				if value.Alive ~= true then return end
+				
+				repaste = true
+				
+				value:Next()
+				-- Lets check if the cell is overlapping or eating 
+				-- We're gonna check in the current CellGrid instead of the NextCellGrid
+				local residingCell = love.CellGrid:Get(value.Position.X, value.Position.Y)
+				if residingCell and residingCell.type == "cell" and (residingCell ~= value) then
+					-- Lets check which cell has a higher points value
+					local garrisonedCell
+
+					if residingCell.Points > value.Points then
+						garrisonedCell = value
+						repaste = false
+					else
+						garrisonedCell = residingCell
+					end
+
+					garrisonedCell.Points = garrisonedCell.Points + Config.Points.Death
+					garrisonedCell.Alive = false
+
+					table.insert(love.GarrisonedCells, garrisonedCell)
+					--love.GarrisonedCellsDisplay:Increment(value.Position.X, value.Position.Y, 1)
+				elseif residingCell and residingCell.type == "food" then
+					love.CellGrid:Set(value.Position.X, value.Position.Y, nil)
+					love.NextCellGrid:Set(value.Position.X, value.Position.Y, nil)
+
+					residingCell:Destroy()
+					value.Points = value.Points + Config.Points.Food
+				end
+			elseif value.type == "food" then
+				repaste = true
+			else
+				Log("Cell type unknown!")
+			end
+		end
+
+		if repaste then
+			love.NextCellGrid:Set(value.Position.X, value.Position.Y, value)
+		end
+	end)
+
+	-- Empty and replace the two BiArrays so we dont have to create a new one every frame
+	love.CellGrid:Empty()
+	love.CellGrid, love.NextCellGrid = love.NextCellGrid, love.CellGrid
+end
+
+function MainWorld.NextGeneration()
+	-- TODO add next generation support :)
+
+	MainWorld.Generation = MainWorld.Generation + 1
+
+
+end
+
 function MainWorld.load()
 	MainWorld.UpdateRate = Config.UpdateRate
 	MainWorld.Generation = 1
@@ -23,18 +87,12 @@ function MainWorld.load()
 		--chance = chance - 1
 		
 		if chance == 1 then
-			local cell = Packages.CellClass.new({
-				X = column;
-				Y = row
-			})
+			local cell = Packages.CellClass.new(Vector2.new(column, row))
 			
 
 			return cell
 		elseif chance == 2 or chance == 4 then
-			local food = Packages.FoodClass.new({
-				X = column;
-				Y = row;
-			})
+			local food = Packages.FoodClass.new(Vector2.new(column, row))
 
 			return food
 		end
@@ -48,63 +106,7 @@ end
 
 function MainWorld.update()
     if ((DifferenceTime.calculate("simulation update rate", true, true)) > Config.UpdateRate) and (not MainWorld.GamePaused) then
-		MainWorld.Day = MainWorld.Day + 1
-
-		love.CellGrid:Iterate(function(column, row, value)
-			local repaste = false
-			
-			if value then
-				if value.type == "cell" then
-					if value.Alive ~= true then return end
-					
-					repaste = true
-					
-					value:Next()
-					-- Lets check if the cell is overlapping or eating 
-					-- We're gonna check in the current CellGrid instead of the NextCellGrid
-			    	local residingCell = love.CellGrid:Get(value.Position.X, value.Position.Y)
-			    	if residingCell and residingCell.type == "cell" and (residingCell ~= value) then
-			       		--print(value.Ancestry, "- Cell found -", residingCell.Ancestry)
-			        
-						-- Lets check which cell has a higher points value
-
-						local garrisonedCell
-
-						if residingCell.Points > value.Points then
-							garrisonedCell = value
-							repaste = false
-						else
-							garrisonedCell = residingCell
-						end
-
-						garrisonedCell.Points = garrisonedCell.Points + Config.Points.Death
-						garrisonedCell.Alive = false
-
-						table.insert(love.GarrisonedCells, garrisonedCell)
-						--love.GarrisonedCellsDisplay:Increment(value.Position.X, value.Position.Y, 1)
-					elseif residingCell and residingCell.type == "food" then
-						love.CellGrid:Set(value.Position.X, value.Position.Y, nil)
-						love.NextCellGrid:Set(value.Position.X, value.Position.Y, nil)
-
-						residingCell:Destroy()
-						value.Points = value.Points + Config.Points.Food
-			    	end
-				elseif value.type == "food" then
-					repaste = true
-				else
-					Log("Cell type unknown!")
-				end
-			end
-
-			if repaste then
-    			love.NextCellGrid:Set(value.Position.X, value.Position.Y, value)
-			end
-		end)
-
-		-- Empty and replace the two BiArrays so we dont have to create a new one every frame
-		love.CellGrid:Empty()
-		love.CellGrid, love.NextCellGrid = love.NextCellGrid, love.CellGrid 
-
+		MainWorld.NextDay()
 		DifferenceTime.start("simulation update rate")
 	end
 end

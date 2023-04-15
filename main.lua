@@ -175,12 +175,14 @@ do
 end
 
 -- Importing required modules
+local Vector2 = import("src.lib.Vector2")
+local UDIM2 = import("src.lib.UDIM2")
 local BiArray = import("src.lib.BiArray")
 local CellClass = import("src.lib.Cell", "CellClass")
 local FoodClass = import("src.lib.Food", "FoodClass")
 local UUID = import("src.lib.UUID")
 local ScheduleService = import("src.main.ScheduleService")
-local Sidebar = import("src.main.Sidebar")
+local Sidebar = import("src.main.Sidebar.init")
 local MainWorld = import("src.main.MainWorld")
 local Evals = import("src.lib.Evals")
 local TableToString = import("src.lib.TableToString")
@@ -259,10 +261,10 @@ function love.draw()
 	-- Memory stuff
 	love.graphics.setColor(1, 1, 1)
 
-	love.graphics.print("avg:  " .. tostring(average_mem_usage) .. "MB", 1010, 10)
-	love.graphics.print("max:  " .. tostring(max_mem_usage) .. "MB", 1010, 30)
-	love.graphics.print("min:  " .. tostring(min_mem_usage) .. "MB", 1010, 50)
-	love.graphics.print("cur:  " .. tostring(mem_usage) .. "MB", 1010, 70)
+	love.graphics.print("avg:  " .. tostring(average_mem_usage) .. "MB", Config.WorldPixelWidth + 10, 5)
+	love.graphics.print("max:  " .. tostring(max_mem_usage) .. "MB", Config.WorldPixelWidth + 160, 25)
+	love.graphics.print("min:  " .. tostring(min_mem_usage) .. "MB", Config.WorldPixelWidth + 10, 25)
+	love.graphics.print("cur:  " .. tostring(mem_usage) .. "MB", Config.WorldPixelWidth + 160, 5)
 end
 
 function love.quit()
