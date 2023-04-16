@@ -1,3 +1,6 @@
+--// Random Class \\--
+--// SomewhatMay, April 2023 \\--
+
 local Random = {}
 local randomObject = {
     m = 2^31 - 1;   -- modulus
@@ -35,7 +38,6 @@ function Random.new(seed)
     }
 
     self = setmetatable(self, randomObject)
-    self:NextInt() -- call it at least once to 'calibrate' it
 
     return self
 end

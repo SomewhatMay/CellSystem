@@ -1,5 +1,5 @@
---// SomewhatMay \\--
 --// BiArray Class \\--
+--// SomewhatMay, April 2023 \\--
 
 local biArray = {}
 biArray.__index = biArray

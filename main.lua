@@ -1,3 +1,8 @@
+---@diagnostic disable: need-check-nil
+--// CellSystem \\--
+--// SomewhatMay, April 2023 \\--
+
+__Main_version = "5.0.0A"
 
 -- Log stuff
 local logFile = io.open("Log.txt", "w+")
@@ -14,6 +19,10 @@ if not logFile then
 	logFile:open("w")
 	love.Log = Log
 	_Global_log_file = true
+end
+
+if logFile then
+	logFile:close()
 end
 
 function string.lpad(str, len, char)
@@ -40,6 +49,8 @@ LogTypes = {
 
 --@param logType {LogType} - the type of loggin
 function Log(logType, ...)
+	logFile = io.open("Log.txt", "a")
+
     local strings = {...}
     local prefixTime
 	local pString = ""
@@ -67,6 +78,7 @@ function Log(logType, ...)
     end
 	
     logFile:write("\n" .. pString)
+	logFile:close()
 
     return prefixTime
 end
@@ -91,7 +103,7 @@ if _Global_log_file then
 	Log("Cannot create local log file. Using global..")
 end
 
-Log("main.lua starting...")
+Log("main.lua starting... (Version: " .. __Main_version .. ")")
 
 -- Difftime
 DifferenceTime = {Scheduled = {}}
@@ -124,7 +136,7 @@ end
 Log("Attempting to import modules...")
 
 local Modules = {}
-local function import(path)
+local function import(path, indexName)
 	local lastPeriod = string.find(path, "%.[^%.]*$")
 	local moduleName = string.sub(path, (lastPeriod or 0) + 1, #path)
 	local loadedModule = Modules[moduleName]
@@ -135,7 +147,7 @@ local function import(path)
 
 	loadedModule = require(path)
 	
-	Modules[moduleName] = loadedModule
+	Modules[indexName or moduleName] = loadedModule
 
 	return loadedModule
 end
@@ -175,24 +187,68 @@ do
 end
 
 -- Importing required modules
-local BiArray = import("packages.lib.BiArray")
-local CellClass = import("packages.lib.Cell")
-local FoodClass = import("packages.lib.Food")
-local UUID = import("packages.lib.UUID")
-local ScheduleService = import("packages.ScheduleService")
-local Sidebar = import("packages.canvases.Sidebar")
-local MainWorld = import("packages.canvases.MainWorld")
-local Evals = import("packages.lib.Evals")
-local TableToString = import("packages.lib.TableToString")
-local Random = import("packages.lib.Random")
+-- lib
+local Vector2 = import("src.lib.Vector2")
+local UDIM2 = import("src.lib.UDIM2")
+local BiArray = import("src.lib.BiArray")
+local CellClass = import("src.lib.Cell", "CellClass")
+local FoodClass = import("src.lib.Food", "FoodClass")
+local UUID = import("src.lib.UUID")
+local Evals = import("src.main.ScheduleService.Evals")
+local TableToString = import("src.lib.TableToString")
+local Random = import("src.lib.Random")
+local FrameEntry = import("src.lib.FrameEntry")
+-- main
+local ScheduleService = import("src.main.ScheduleService.init", "ScheduleService")
+local Sidebar = import("src.main.Sidebar.init", "Sidebar")
+local MainWorld = import("src.main.MainWorld")
 
 Log("All modules imported. Initating all modules...")
 
 DifferenceTime.start("Module init startup")
 -- Initiating all modules
+local ModuleScheduledCalls = {
+	load = {};
+	update = {};
+	draw = {};
+	keyPressed = {};
+	keyReleased = {};
+	mousePressed = {};
+	mouseReleased = {};
+}
 for _, module in pairs(Modules) do
-	if type(module) == "table" and module.Init then
-		module.Init()
+	if type(module) == "table" then
+		if module.Init then
+			module.Init()
+		end
+
+		if module.load then
+			table.insert(ModuleScheduledCalls.load, module)
+		end
+
+		if module.update then
+			table.insert(ModuleScheduledCalls.update, module)
+		end
+
+		if module.draw then
+			table.insert(ModuleScheduledCalls.draw, module)
+		end
+
+		if module.keyPressed then
+			table.insert(ModuleScheduledCalls.keyPressed, module)
+		end
+
+		if module.keyReleased then
+			table.insert(ModuleScheduledCalls.keyReleased, module)
+		end
+
+		if module.mousePressed then
+			table.insert(ModuleScheduledCalls.mousePressed, module)
+		end
+
+		if module.mouseReleased then
+			table.insert(ModuleScheduledCalls.mouseReleased, module)
+		end
 	end
 end
 
@@ -207,20 +263,28 @@ local mem_usage_sum, mem_usage_quantity = 0, 0
 local average_mem_usage = 0
 
 function love.load()
-	Log("love.load() started - calling .load() on all canvases...")
+	love.CellSpawnRandom = Packages.Random.new(Config.Seed)
 
-	for _, module in pairs(Modules) do
-		if type(module) == "table" and module.load then
-			module.load()
-		end
+	DifferenceTime.start("love.load() start timer")
+	Log("love.load() started with seed " .. love.CellSpawnRandom.seed .. " - calling .load() on all modules...")
+
+	for _, module in pairs(ModuleScheduledCalls.load) do
+		module.load()
 	end
+
+	local cell = CellClass.new()
+	cell:Destroy()
 
 	last_mem_update = love.timer.getTime()
 
-	Log("love.load() completed!")
+	Log("love.load() completed in " .. DifferenceTime.calculate("love.load() start timer") .. "ms!")
 end
 
 function love.update(dt)
+	for _, module in pairs(ModuleScheduledCalls.update) do
+		module.update(dt)
+	end
+
 	-- Memory stuff
 	mem_usage = math.floor(collectgarbage("count")) / 1000
 	
@@ -241,35 +305,58 @@ function love.update(dt)
 	if mem_usage < min_mem_usage then
 		min_mem_usage = mem_usage
 	end
+end
 
-	MainWorld.update(dt)
+function love.keypressed(key)
+	if key == "escape" then
+		love.event.quit()
+	end
+
+	for _, module in pairs(ModuleScheduledCalls.keyPressed) do
+		module.keyPressed(key)
+	end
+end
+
+function love.keyreleased(key)
+	for _, module in pairs(ModuleScheduledCalls.keyReleased) do
+		module.keyReleased(key)
+	end
+end
+
+function love.mousepressed(x, y, button)
+	for _, module in pairs(ModuleScheduledCalls.mousePressed) do
+		module.mousePressed(x, y, button)
+	end
+end
+
+function love.mousereleased(x, y, button)
+	for _, module in pairs(ModuleScheduledCalls.mouseReleased) do
+		module.mouseReleased(x, y, button)
+	end
 end
 
 function love.draw()
+	for _, module in pairs(ModuleScheduledCalls.draw) do
+		module.draw()
+	end
+
 	-- Memory stuff
 	love.graphics.setColor(1, 1, 1)
 
-	love.graphics.print("avg:  " .. tostring(average_mem_usage) .. "MB", 1010, 10)
-	love.graphics.print("max:  " .. tostring(max_mem_usage) .. "MB", 1010, 30)
-	love.graphics.print("min:  " .. tostring(min_mem_usage) .. "MB", 1010, 50)
-	love.graphics.print("cur:  " .. tostring(mem_usage) .. "MB", 1010, 70)
-
-	love.graphics.setBackgroundColor(0, 0, 0)
-
-	-- GarrisonedCellsDisplay
-	-- love.graphics.setColor(1, 1, 1)
-	-- love.GarrisonedCellsDisplay:Iterate(function(column, row, value)
-	-- 	if value > 0 then
-	-- 		love.graphics.print(value, (column - 1) * Config.CellSize.X, (row - 1) * Config.CellSize.Y)
-	-- 	end
-	-- end)
-
-
-
-	MainWorld.draw()
-	Sidebar:Draw()
+	love.graphics.print("avg:  " .. tostring(average_mem_usage) .. "MB", Config.WorldPixelWidth + 10, 5)
+	love.graphics.print("max:  " .. tostring(max_mem_usage) .. "MB", Config.WorldPixelWidth + 160, 25)
+	love.graphics.print("min:  " .. tostring(min_mem_usage) .. "MB", Config.WorldPixelWidth + 10, 25)
+	love.graphics.print("cur:  " .. tostring(mem_usage) .. "MB", Config.WorldPixelWidth + 160, 5)
 end
 
 function love.quit()
+	Log("Calling quit on all modules...")
+
+	for _, module in pairs(Modules) do
+		if type(module) == "table" and module.quit then
+			module.quit()
+		end
+	end
+
 	Log("Quitting successfully.")
 end

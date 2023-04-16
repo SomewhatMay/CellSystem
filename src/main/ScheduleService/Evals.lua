@@ -1,3 +1,6 @@
+--// Evals \\--
+--// SomewhatMay, April 2023 \\--
+
 function Equal(arguemntA, argumentB)
     assert(type(arguemntA) == "number" and type(argumentB) == "number", "Arguemnts are not both numbers!")
 
