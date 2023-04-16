@@ -4,7 +4,7 @@
 --wraps if it doesnt fit in the values
 --@param {number} direction - Can be `0` (up) `1` (right) `2` (down) `3` (left)
 return function(cell, direction)
-    direction = (direction or 0) % 5
+    direction = (direction or 0) % 4
     local XOffset, YOffset = 0, 0
 
     if direction == 0 then

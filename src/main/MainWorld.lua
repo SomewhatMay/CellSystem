@@ -102,10 +102,38 @@ function MainWorld.NextDay()
 	love.CellGrid, love.NextCellGrid = love.NextCellGrid, love.CellGrid
 end
 
-function MainWorld.NextGeneration()
+function MainWorld.NextGeneration(currentGrid)
 	-- TODO add next generation support :)
 
 	MainWorld.Generation = MainWorld.Generation + 1
+
+	-- Determine the top 10 cells
+	-- [1 ...] = cell;
+	local cellLeaderboard = {}
+	local lowestCellPoints = math.huge
+	for _, value in pairs(currentGrid.Array) do
+		if value.Points > lowestCellPoints then
+			cellLeaderboard[#cellLeaderboard+1] = value
+
+			lowestCellPoints = cellLeaderboard[1].Points
+			local lowestIndex = 1
+
+			for rank, leaderboardValue in pairs(cellLeaderboard) do
+				if leaderboardValue.Points < lowestCellPoints then
+					lowestCellPoints = leaderboardValue.Points
+					lowestIndex = rank
+				end
+			end
+
+			if (#cellLeaderboard > 10) and (lowestIndex ~= nil) then
+				table.remove(cellLeaderboard, lowestIndex)
+			end
+		end
+	end
+
+	-- Determine the percentage for each cell's reporduction
+	-- [cell] = percent_in_decimal: float;
+	local reproductionTable = {}
 
 	-- Empty both cells so we can replace them with new generation
 	love.CellGrid:Empty()

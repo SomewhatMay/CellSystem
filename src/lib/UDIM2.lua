@@ -29,6 +29,10 @@ udim2.__div = function(self, vectorB)
     return UDIM2.new(self.Width / vectorB.Width, self.Height / vectorB.Width)
 end
 
+function udim2:Clone()
+    return UDIM2.new(self.Width, self.Height)
+end
+
 function UDIM2.new(Width, Height)
     local self = {
         Width = Width or 0;

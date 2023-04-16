@@ -9,6 +9,7 @@ local settings = {
     UpdateRate = .01; -- tickrate; in seconds
     TotalScheduleSize = 8; -- the number of schedules each cell should have
     Seed = "random"; -- can be any number or 'random'
+    MutationChance = .4; -- a decimal number
 
     WorldExtents = {
         Columns = 150;

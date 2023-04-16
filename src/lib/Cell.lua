@@ -32,21 +32,35 @@ function cell:Next()
 	self.LatestResult = newResult
 end
 
+function cell:Clone()
+	local clonedSelf = cellClass.new()
+	clonedSelf.Points = self.Points
+	clonedSelf.Ancestry = self.Ancestry
+	clonedSelf.Position = self.Position:Clone()
+	clonedSelf.Pointer = self.Pointer
+	clonedSelf.LatestResult = self.LatestResult
+	clonedSelf.Schedule = {table.unpack(self.Schedule)}
+	clonedSelf.Alive = self.Alive
+
+	return clonedSelf
+end
+
 function cell:Destroy()
+	self.type = nil
 	self.Points = nil
 	self.Ancestry = nil
 	self.Position = nil
-	self.Schedule = nil
 	self.Pointer = nil
+	self.LatestResult = nil
+	self.Schedule = nil
+	self.Alive = nil
 
 	setmetatable(self, nil)
-
-	if #self > 0 then
-		Log("Incomplete :Destroy()")
-	end
 end
 
 function cellClass.new(position, ancestry)
+	print('1')
+
 	position = position or Vector2.new()
 	ancestry = ancestry or Packages.UUID()
 
@@ -64,6 +78,8 @@ function cellClass.new(position, ancestry)
 
 	setmetatable(self, cell)
 	self.Schedule = ScheduleService.newSchedule()
+
+	Log("created cell!")
 
 	return self
 end

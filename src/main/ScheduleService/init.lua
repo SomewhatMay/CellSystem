@@ -11,6 +11,10 @@ local function wrap(a, max)
     return (a % max)
 end
 
+function ScheduleService.mutate()
+    
+end
+
 function ScheduleService.newSchedule(volume)
     local self = {}
 

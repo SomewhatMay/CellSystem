@@ -31,6 +31,10 @@ function vector2:toString()
     return ("(X = %s, Y = %s)"):format(self.X, self.Y)
 end
 
+function vector2:Clone()
+    return Vector2.new(self.X, self.Y)
+end
+
 function Vector2.new(X, Y)
     local self = {
         X = X or 0;

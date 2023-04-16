@@ -262,6 +262,9 @@ function love.load()
 		module.load()
 	end
 
+	local cell = CellClass.new()
+	cell:Destroy()
+
 	last_mem_update = love.timer.getTime()
 
 	Log("love.load() completed in " .. DifferenceTime.calculate("love.load() start timer") .. "ms!")
