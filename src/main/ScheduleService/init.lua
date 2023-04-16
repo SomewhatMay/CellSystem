@@ -11,8 +11,8 @@ local function wrap(a, max)
     return (a % max)
 end
 
-function ScheduleService.mutate()
-    
+function ScheduleService.mutateCell(cell, schedule)
+    cell.Schedule = schedule
 end
 
 function ScheduleService.newSchedule(volume)

@@ -6,13 +6,16 @@ local function spiral(x, y, callback)
     local steps = 1
     local initX, initY = x, y -- Remember initial position
 
-    while true do
+    local life = 1000000
+    while life > 0 do
+        life = life - 1
+
         for i = 1, steps do
             x = x + dx
             y = y + dy
 
             if callback(x, y, x - initX, y - initY) then
-                return true-- Pass relative position
+                return true
             end
         end
 
@@ -21,12 +24,14 @@ local function spiral(x, y, callback)
             steps = steps + 1
         end
     end
+
+    return false
 end
 
 return function(cell)
     local direction = 0
 
-    spiral(cell.Position.X, cell.Position.Y, function(x, y, xOffset, yOffset)
+    local success = spiral(cell.Position.X, cell.Position.Y, function(x, y, xOffset, yOffset)
         if love.CellGrid:OutOfBounds(x, y) then return end
         local value = love.CellGrid:Get(x, y)
 
@@ -41,6 +46,10 @@ return function(cell)
             return true
         end
     end)
+
+    if not success then
+        Log("Unable to find food in radius!")
+    end
 
     return direction
 end

@@ -38,7 +38,6 @@ function Random.new(seed)
     }
 
     self = setmetatable(self, randomObject)
-    self:NextInt() -- call it at least once to 'calibrate' it
 
     return self
 end

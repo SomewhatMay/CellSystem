@@ -1,7 +1,8 @@
+---@diagnostic disable: need-check-nil
 --// CellSystem \\--
 --// SomewhatMay, April 2023 \\--
 
-__Main_version = "4.20.3A"
+__Main_version = "5.0.0A"
 
 -- Log stuff
 local logFile = io.open("Log.txt", "w+")
@@ -18,6 +19,10 @@ if not logFile then
 	logFile:open("w")
 	love.Log = Log
 	_Global_log_file = true
+end
+
+if logFile then
+	logFile:close()
 end
 
 function string.lpad(str, len, char)
@@ -44,6 +49,8 @@ LogTypes = {
 
 --@param logType {LogType} - the type of loggin
 function Log(logType, ...)
+	logFile = io.open("Log.txt", "a")
+
     local strings = {...}
     local prefixTime
 	local pString = ""
@@ -71,6 +78,7 @@ function Log(logType, ...)
     end
 	
     logFile:write("\n" .. pString)
+	logFile:close()
 
     return prefixTime
 end
@@ -255,8 +263,10 @@ local mem_usage_sum, mem_usage_quantity = 0, 0
 local average_mem_usage = 0
 
 function love.load()
+	love.CellSpawnRandom = Packages.Random.new(Config.Seed)
+
 	DifferenceTime.start("love.load() start timer")
-	Log("love.load() started - calling .load() on all modules...")
+	Log("love.load() started with seed " .. love.CellSpawnRandom.seed .. " - calling .load() on all modules...")
 
 	for _, module in pairs(ModuleScheduledCalls.load) do
 		module.load()
@@ -298,6 +308,10 @@ function love.update(dt)
 end
 
 function love.keypressed(key)
+	if key == "escape" then
+		love.event.quit()
+	end
+
 	for _, module in pairs(ModuleScheduledCalls.keyPressed) do
 		module.keyPressed(key)
 	end

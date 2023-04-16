@@ -59,8 +59,6 @@ function cell:Destroy()
 end
 
 function cellClass.new(position, ancestry)
-	print('1')
-
 	position = position or Vector2.new()
 	ancestry = ancestry or Packages.UUID()
 
@@ -78,8 +76,6 @@ function cellClass.new(position, ancestry)
 
 	setmetatable(self, cell)
 	self.Schedule = ScheduleService.newSchedule()
-
-	Log("created cell!")
 
 	return self
 end
