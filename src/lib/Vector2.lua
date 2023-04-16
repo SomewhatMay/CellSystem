@@ -1,3 +1,6 @@
+--// Vector2 \\--
+--// SomewhatMay, April 2023 \\--
+
 Vector2 = {}
 local vector2 = {}
 vector2.__index = function(self, index)
@@ -26,6 +29,10 @@ end
 
 function vector2:toString()
     return ("(X = %s, Y = %s)"):format(self.X, self.Y)
+end
+
+function vector2:Clone()
+    return Vector2.new(self.X, self.Y)
 end
 
 function Vector2.new(X, Y)

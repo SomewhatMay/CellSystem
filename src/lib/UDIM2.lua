@@ -1,3 +1,6 @@
+--// UDIM2 \\--
+--// SomewhatMay, April 2023 \\--
+
 UDIM2 = {}
 local udim2 = {}
 udim2.__index = udim2
@@ -24,6 +27,10 @@ end
 
 udim2.__div = function(self, vectorB)
     return UDIM2.new(self.Width / vectorB.Width, self.Height / vectorB.Width)
+end
+
+function udim2:Clone()
+    return UDIM2.new(self.Width, self.Height)
 end
 
 function UDIM2.new(Width, Height)

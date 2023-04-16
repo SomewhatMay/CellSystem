@@ -40,10 +40,56 @@ function MainWorld.GetGameStateString()
 	end
 end
 
+-- Check if food is finished, and if so, call NextGeneration()
+local function isFoodFinished()
+	if MainWorld.FoodAlive <= 0 then
+		MainWorld.NextGeneration(love.CellGrid.Array, love.GarrisonedCells)
+
+		return true
+	end
+
+	return false
+end
+
+local function getLeaderboard(leaderboardArray, gridArray)
+	for _, currentCell in pairs(gridArray) do
+		local leaderboardArrayLength = #leaderboardArray
+
+		-- Let's check if the current cell's points is greater than a full leaderboard's lowest cell's points
+		if not ((leaderboardArrayLength > 10) and (currentCell.Points < leaderboardArray[leaderboardArrayLength].Points)) then
+			-- let's insert the current cell into the correct position in the cell array
+			local inserted = false
+			for index, topCell in pairs(leaderboardArray) do
+				if currentCell.Points > topCell.Points then
+					table.insert(leaderboardArray, index, currentCell)
+					inserted = true
+					leaderboardArrayLength = leaderboardArrayLength + 1
+
+					break
+				end
+			end
+
+			-- If the leaderboard is not full, lets add the cell to the end
+			if (not inserted) and (leaderboardArrayLength < 10) then
+				table.insert(leaderboardArray, currentCell)
+				leaderboardArrayLength = leaderboardArrayLength + 1
+			end
+
+			-- Check if the current leaderboardArray's length is greater than 10
+			if leaderboardArrayLength > 10 then
+				table.remove(leaderboardArray, leaderboardArrayLength)
+			end
+		end
+	end
+end
+
 function MainWorld.NextDay()
 	MainWorld.Day = MainWorld.Day + 1
+	local currentGeneration = MainWorld.Generation
 
 	love.CellGrid:Iterate(function(column, row, value)
+		if MainWorld.Generation ~= currentGeneration then return end
+
 		local repaste = false
 		
 		if value then
@@ -74,7 +120,6 @@ function MainWorld.NextDay()
 					MainWorld.CellsAlive = MainWorld.CellsAlive - 1 
 
 					table.insert(love.GarrisonedCells, garrisonedCell)
-					--love.GarrisonedCellsDisplay:Increment(value.Position.X, value.Position.Y, 1)
 				elseif residingCell and residingCell.type == "food" then
 					love.CellGrid:Set(value.Position.X, value.Position.Y, nil)
 					love.NextCellGrid:Set(value.Position.X, value.Position.Y, nil)
@@ -84,6 +129,10 @@ function MainWorld.NextDay()
 
 					residingCell:Destroy()
 					value.Points = value.Points + Config.Points.Food
+
+					if isFoodFinished() then
+						return -- break out of the current .NextDay() function if we have moved on a generation
+					end
 				end
 			elseif value.type == "food" then
 				repaste = true
@@ -97,39 +146,73 @@ function MainWorld.NextDay()
 		end
 	end)
 
-	-- Empty and replace the two BiArrays so we dont have to create a new one every frame
-	love.CellGrid:Empty()
-	love.CellGrid, love.NextCellGrid = love.NextCellGrid, love.CellGrid
+	-- Only touch the grids if we havent changed generations
+	if MainWorld.Generation == currentGeneration then
+		-- Empty and replace the two BiArrays so we dont have to create a new one every frame
+		love.CellGrid:Empty()
+		love.CellGrid, love.NextCellGrid = love.NextCellGrid, love.CellGrid
+	end
 end
 
-function MainWorld.NextGeneration()
+function MainWorld.NextGeneration(currentGrid, garrisonedGrid)
 	-- TODO add next generation support :)
 
+	MainWorld.Day = 0
 	MainWorld.Generation = MainWorld.Generation + 1
+	MainWorld.CellsAlive = 0
+	MainWorld.CellsGarrisoned = 0
+	MainWorld.FoodAlive = 0
+	MainWorld.FoodEaten = 0
 
+	-- Determine the top 10 cells
+	-- [1 ...] = cell;
+	local cellLeaderboard = {}
 
-end
+	if currentGrid then
+		getLeaderboard(cellLeaderboard, currentGrid)
+		getLeaderboard(cellLeaderboard, garrisonedGrid)
 
-function MainWorld.load()
-	MainWorld.UpdateRate = Config.UpdateRate
-	MainWorld.Generation = 1
-	MainWorld.Day = 1
-	
-    Log("Initiating all cells...")
+		Log("New generation starting! Last generation lifetime: " .. DifferenceTime.calculate("generation life time", true) .. " sec.")
+	end
 
-    love.CellSpawnRandom = Packages.Random.new(Config.Seed)
+	-- Empty both cells so we can replace them with new generation
+	love.CellGrid:Empty()
+	love.NextCellGrid:Empty()
 
-	--love.GarrisonedCellsDisplay = BiArray.new(Config.World.Columns, Config.World.Rows, 0)
-
-	--local chance = 10
-	love.NextCellGrid = Packages.BiArray.new(Config.WorldExtents.Columns, Config.WorldExtents.Rows)
-	love.CellGrid = Packages.BiArray.new(Config.WorldExtents.Columns, Config.WorldExtents.Rows, function(column, row)
+	love.CellGrid:Fill(function(column, row)
 		local chance = love.CellSpawnRandom:NextInt(1, 150)
-		--chance = chance - 1
-		
+
 		if chance == 1 then
 			local cell = Packages.CellClass.new(Vector2.new(column, row))
 			MainWorld.CellsAlive = MainWorld.CellsAlive + 1
+
+			-- Set the schedule of this new cell to a reproduced schedule
+			if currentGrid then
+				-- Percent value that wil reflect config's cell percent configuration
+				local chosenAncestryPercent = love.CellSpawnRandom:NextInt(0, 100) / 100
+
+				-- if we end up having a cell that is unsigned percent, we skip mutalations and assigning of schedule.
+				if chosenAncestryPercent <= Config.ReproductionUnsignedSchedule then
+					local chosenCell
+
+					for rank, percent in pairs(Config.ReproductionPercentTable) do
+						-- Set the min percent to 0 if the current rank is 1 because we cant have 0th index in a table.
+						local minPercent = ((rank - 1 == 0 and 0) or Config.ReproductionPercentTable[rank - 1])
+
+						-- Choose the cell based on the leaderboard and break out
+						if chosenAncestryPercent > minPercent and chosenAncestryPercent <= percent then
+							chosenCell = cellLeaderboard[rank]
+
+							break
+						end
+					end
+
+					if chosenCell then
+						-- Set the schedule with some mutalations :)
+						Packages.ScheduleService.mutateCell(cell, chosenCell.Schedule)
+					end
+				end
+			end
 
 			return cell
 		elseif chance == 2 or chance == 4 then
@@ -141,13 +224,28 @@ function MainWorld.load()
 	end)
 
 	love.GarrisonedCells = {}
+
+	DifferenceTime.start("generation life time")
+end
+
+function MainWorld.load()
+	MainWorld.UpdateRate = Config.UpdateRate
+	MainWorld.Generation = 0
+	
+    Log("Initiating all cells...")
+
+	love.NextCellGrid = Packages.BiArray.new(Config.WorldExtents.Columns, Config.WorldExtents.Rows)
+	love.CellGrid = Packages.BiArray.new(Config.WorldExtents.Columns, Config.WorldExtents.Rows)
+
+	MainWorld.NextGeneration()
+	
 	love.window.setMode(Config.WindowSize.X, Config.WindowSize.Y)
 
 	DifferenceTime.start("simulation update rate")
 end
 
 function MainWorld.update()
-    if ((DifferenceTime.calculate("simulation update rate", true, true)) > Config.UpdateRate) and (MainWorld.GameState ~= GameStates.PAUSE) then
+    if ((DifferenceTime.calculate("simulation update rate", true, true)) > MainWorld.UpdateRate) and (MainWorld.GameState ~= GameStates.PAUSE) then
 		MainWorld.NextDay()
 		DifferenceTime.start("simulation update rate")
 	end
@@ -184,6 +282,18 @@ function MainWorld.draw()
 	-- 		love.graphics.print(value, (column - 1) * Config.CellSize.X, (row - 1) * Config.CellSize.Y)
 	-- 	end
 	-- end)
+end
+
+function MainWorld.keyPressed(key)
+	if key == "g" then
+		MainWorld.NextGeneration()
+	elseif key == "p" then
+		MainWorld.TogglePause()
+	elseif key == "d" then
+		if MainWorld.GameState == GameStates.PAUSE then
+			MainWorld.NextDay()
+		end
+	end
 end
 
 return MainWorld

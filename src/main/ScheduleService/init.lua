@@ -1,17 +1,18 @@
+--// Schedule Service \\--
+--// SomewhatMay, April 2023 \\--
 
 local Config
 local Evals
+local BitLoader
 local ScheduleService = {}
 local Actions = {}
 
-local function random(a, b)
-    a, b = a or 1, b or 10
-    
-    return love.CellSpawnRandom:NextInt(a, b) - 1
-end
-
 local function wrap(a, max)
     return (a % max)
+end
+
+function ScheduleService.mutateCell(cell, schedule)
+    cell.Schedule = schedule
 end
 
 function ScheduleService.newSchedule(volume)
@@ -22,14 +23,14 @@ function ScheduleService.newSchedule(volume)
         local str = ""
 
         -- Let's add 6 random bits for the schedule generation
-        str = str .. tostring(random(1, 6)) -- Eval Type
-        str = str .. tostring(random(1, Config.TotalScheduleSize)) -- ConnectionA
-        str = str .. tostring(random(1, Config.TotalScheduleSize)) -- ConnectionB
-        str = str .. tostring(random(1, 2)) -- Action Type
-        str = str .. tostring(random()) -- Assisting Bit 1
-        str = str .. tostring(random(1, 2)) -- Assisting Bit 2
-        str = str .. tostring(random()) -- Assisting Bit 3
-        str = str .. tostring(random()) -- Eval Bit
+        str = str .. BitLoader.EvalType() -- Eval Type
+        str = str .. BitLoader.ConnectionPointer() -- ConnectionA
+        str = str .. BitLoader.ConnectionPointer() -- ConnectionB
+        str = str .. BitLoader.ActionType() -- Action Type
+        str = str .. BitLoader.AssistingBit1() -- Assisting Bit 1
+        str = str .. BitLoader.AssistingBit2() -- Assisting Bit 2
+        str = str .. BitLoader.AssistingBit3() -- Assisting Bit 3
+        str = str .. BitLoader.EvalBit() -- Eval Bit
 
         table.insert(self, str)
     end
@@ -119,6 +120,7 @@ end
 function ScheduleService.Init()
     Config = Packages.Config
     Evals = Packages.Evals
+    BitLoader = require("src.main.ScheduleService.ScheduleBitLoader")
 
     local ActionFiles = love.filesystem.getDirectoryItems("src/actions")
 
