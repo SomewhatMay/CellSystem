@@ -11,8 +11,16 @@ local function wrap(a, max)
     return (a % max)
 end
 
-function ScheduleService.mutateCell(cell, schedule)
-    cell.Schedule = schedule
+function ScheduleService.mutateCell(cell, topSchedule)
+    for index, schedule in pairs(topSchedule) do
+        local modifiedSchedule = schedule
+
+        
+
+        topSchedule[index] = modifiedSchedule
+    end
+    
+    cell.Schedule = topSchedule
 end
 
 function ScheduleService.newSchedule(volume)
@@ -22,7 +30,7 @@ function ScheduleService.newSchedule(volume)
     for _=1, Config.TotalScheduleSize, 1 do
         local str = ""
 
-        -- Let's add 6 random bits for the schedule generation
+        -- Let's add 8 random bits for the schedule generation
         str = str .. BitLoader.EvalType() -- Eval Type
         str = str .. BitLoader.ConnectionPointer() -- ConnectionA
         str = str .. BitLoader.ConnectionPointer() -- ConnectionB
